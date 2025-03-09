@@ -48,17 +48,17 @@ export function LoginForm() {
   };
 
   return (
-    <Card className="w-full shadow-lg">
+    <Card className="w-full shadow-lg bg-white/90 backdrop-blur-sm border-indigo-100 dark:bg-black/40 dark:border-purple-900/30">
       <CardHeader className="space-y-1">
-        <CardTitle className="text-2xl font-bold text-center">Welcome back</CardTitle>
-        <CardDescription className="text-center">
+        <CardTitle className="text-2xl font-bold text-center bg-clip-text text-transparent bg-gradient-to-r from-indigo-500 via-purple-500 to-pink-400">Welcome back</CardTitle>
+        <CardDescription className="text-center text-gray-600 dark:text-gray-300">
           Enter your credentials to sign in
         </CardDescription>
       </CardHeader>
       <form onSubmit={handleSubmit}>
         <CardContent className="space-y-4">
           <div className="space-y-2">
-            <Label htmlFor="email">Email</Label>
+            <Label htmlFor="email" className="text-gray-700 dark:text-gray-200">Email</Label>
             <Input 
               id="email" 
               name="email"
@@ -67,12 +67,13 @@ export function LoginForm() {
               value={formData.email}
               onChange={handleChange}
               required
+              className="border-indigo-100 focus-visible:ring-indigo-400 dark:border-purple-800/30"
             />
           </div>
           <div className="space-y-2">
             <div className="flex items-center justify-between">
-              <Label htmlFor="password">Password</Label>
-              <Button variant="link" className="px-0 font-normal h-auto" type="button">
+              <Label htmlFor="password" className="text-gray-700 dark:text-gray-200">Password</Label>
+              <Button variant="link" className="px-0 font-normal h-auto text-indigo-600 hover:text-indigo-700 dark:text-purple-400 dark:hover:text-purple-300" type="button">
                 Forgot password?
               </Button>
             </div>
@@ -83,16 +84,21 @@ export function LoginForm() {
               value={formData.password}
               onChange={handleChange}
               required
+              className="border-indigo-100 focus-visible:ring-indigo-400 dark:border-purple-800/30"
             />
           </div>
         </CardContent>
         <CardFooter className="flex flex-col space-y-4">
-          <Button type="submit" className="w-full" disabled={isLoading}>
+          <Button 
+            type="submit" 
+            className="w-full bg-gradient-to-r from-indigo-500 via-purple-500 to-pink-500 hover:from-indigo-600 hover:via-purple-600 hover:to-pink-600 text-white" 
+            disabled={isLoading}
+          >
             {isLoading ? "Signing in..." : "Sign in"}
           </Button>
-          <div className="text-center text-sm">
+          <div className="text-center text-sm text-gray-600 dark:text-gray-300">
             Don't have an account?{" "}
-            <Button variant="link" className="p-0 h-auto font-normal" type="button">
+            <Button variant="link" className="p-0 h-auto font-normal text-indigo-600 hover:text-indigo-700 dark:text-purple-400 dark:hover:text-purple-300" type="button">
               Sign up
             </Button>
           </div>
