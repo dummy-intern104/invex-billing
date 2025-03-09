@@ -3,7 +3,7 @@ import { BackgroundBeamsWithCollisionDemo } from "@/components/demo/background-b
 
 const Index = () => {
   return (
-    <div className="min-h-screen">
+    <div className="min-h-screen flex items-center justify-center">
       <BackgroundBeamsWithCollisionDemo />
     </div>
   );
