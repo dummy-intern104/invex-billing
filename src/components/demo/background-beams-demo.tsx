@@ -5,7 +5,7 @@ import { LoginForm } from "@/components/auth/login-form";
 
 function BackgroundBeamsWithCollisionDemo() {
   return (
-    <BackgroundBeamsWithCollision>
+    <BackgroundBeamsWithCollision theme="gradient" speed="default" density="dense">
       <div className="relative z-20 w-full max-w-md mx-auto px-4 py-6 sm:py-10">
         <LoginForm />
       </div>

@@ -4,7 +4,10 @@ import { cn } from "@/lib/utils";
 import { motion } from "framer-motion";
 import React from "react";
 
-export const Explosion = ({ ...props }: React.HTMLProps<HTMLDivElement>) => {
+export const Explosion = ({ 
+  explosionColor = "from-indigo-500 to-purple-500",
+  ...props 
+}: React.HTMLProps<HTMLDivElement> & { explosionColor?: string }) => {
   const spans = Array.from({ length: 20 }, (_, index) => ({
     id: index,
     initialX: 0,
@@ -20,7 +23,7 @@ export const Explosion = ({ ...props }: React.HTMLProps<HTMLDivElement>) => {
         animate={{ opacity: 1 }}
         exit={{ opacity: 0 }}
         transition={{ duration: 1.5, ease: "easeOut" }}
-        className="absolute -inset-x-10 top-0 m-auto h-2 w-10 rounded-full bg-gradient-to-r from-transparent via-indigo-500 to-transparent blur-sm"
+        className={cn("absolute -inset-x-10 top-0 m-auto h-2 w-10 rounded-full bg-gradient-to-r from-transparent via-indigo-500 to-transparent blur-sm")}
       ></motion.div>
       {spans.map((span) => (
         <motion.span
@@ -32,7 +35,7 @@ export const Explosion = ({ ...props }: React.HTMLProps<HTMLDivElement>) => {
             opacity: 0,
           }}
           transition={{ duration: Math.random() * 1.5 + 0.5, ease: "easeOut" }}
-          className="absolute h-1 w-1 rounded-full bg-gradient-to-b from-indigo-500 to-purple-500"
+          className={cn(`absolute h-1 w-1 rounded-full bg-gradient-to-b ${explosionColor}`)}
         />
       ))}
     </div>

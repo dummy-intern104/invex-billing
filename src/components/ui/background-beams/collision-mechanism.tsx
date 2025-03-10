@@ -21,12 +21,14 @@ interface CollisionMechanismProps {
   containerRef: React.RefObject<HTMLDivElement>;
   parentRef: React.RefObject<HTMLDivElement>;
   beamOptions?: BeamOptions;
+  beamColor?: string;
+  explosionColor?: string;
 }
 
 export const CollisionMechanism = React.forwardRef<
   HTMLDivElement,
   CollisionMechanismProps
->(({ parentRef, containerRef, beamOptions = {} }, ref) => {
+>(({ parentRef, containerRef, beamOptions = {}, beamColor, explosionColor }, ref) => {
   const beamRef = useRef<HTMLDivElement>(null);
   const [collision, setCollision] = useState<{
     detected: boolean;
@@ -112,7 +114,8 @@ export const CollisionMechanism = React.forwardRef<
           repeatDelay: beamOptions.repeatDelay || 0,
         }}
         className={cn(
-          "absolute left-0 top-20 m-auto h-14 w-px rounded-full bg-gradient-to-t from-indigo-500 via-purple-500 to-transparent",
+          "absolute left-0 top-20 m-auto h-14 w-px rounded-full bg-gradient-to-t",
+          beamColor || "from-indigo-500 via-purple-500 to-transparent",
           beamOptions.className
         )}
       />
@@ -121,6 +124,7 @@ export const CollisionMechanism = React.forwardRef<
           <Explosion
             key={`${collision.coordinates.x}-${collision.coordinates.y}`}
             className=""
+            explosionColor={explosionColor}
             style={{
               left: `${collision.coordinates.x}px`,
               top: `${collision.coordinates.y}px`,
