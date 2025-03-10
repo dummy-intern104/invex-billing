@@ -38,10 +38,10 @@ export function LoginForm() {
   return (
     <div className="w-full px-4 sm:px-0">
       <div className="mb-8 text-center">
-        <h1 className="text-3xl sm:text-4xl font-bold bg-gradient-to-r from-indigo-500 via-purple-500 to-pink-500 bg-clip-text text-transparent">
+        <h1 className="text-3xl sm:text-4xl font-bold bg-gradient-to-r from-indigo-500 via-purple-500 to-pink-500 bg-clip-text text-transparent break-words">
           Invex AI
         </h1>
-        <p className="mt-2 text-gray-600 dark:text-gray-300">
+        <p className="mt-2 text-gray-600 dark:text-gray-300 px-2 break-words">
           Your AI-powered investment assistant
         </p>
       </div>
