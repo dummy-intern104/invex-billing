@@ -4,14 +4,16 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
 import { Label } from "@/components/ui/label";
-import { useToast } from "@/hooks/use-toast";
+import { useAuth } from "@/context/AuthContext";
+import { Loader2 } from "lucide-react";
 
 export function LoginForm() {
-  const { toast } = useToast();
-  const [isLoading, setIsLoading] = useState(false);
+  const { signIn, signUp, isLoading } = useAuth();
+  const [isSignUp, setIsSignUp] = useState(false);
   const [formData, setFormData] = useState({
     email: "",
     password: "",
+    username: "",
   });
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -21,42 +23,46 @@ export function LoginForm() {
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    setIsLoading(true);
     
-    try {
-      // This is a mock authentication
-      // In a real app, you would connect this to a backend
-      await new Promise(resolve => setTimeout(resolve, 1000));
-      
-      if (formData.email && formData.password) {
-        toast({
-          title: "Login Successful",
-          description: "Welcome back!",
-        });
-      } else {
-        throw new Error("Please enter both email and password");
-      }
-    } catch (error) {
-      toast({
-        title: "Login Failed",
-        description: error instanceof Error ? error.message : "Something went wrong",
-        variant: "destructive",
-      });
-    } finally {
-      setIsLoading(false);
+    if (isSignUp) {
+      await signUp(formData.email, formData.password, formData.username);
+    } else {
+      await signIn(formData.email, formData.password);
     }
+  };
+
+  const toggleAuthMode = () => {
+    setIsSignUp(!isSignUp);
   };
 
   return (
     <Card className="w-full shadow-lg bg-white/90 backdrop-blur-sm border-indigo-100 dark:bg-black/40 dark:border-purple-900/30">
       <CardHeader className="space-y-1">
-        <CardTitle className="text-2xl font-bold text-center bg-clip-text text-transparent bg-gradient-to-r from-indigo-500 via-purple-500 to-pink-400">Welcome back</CardTitle>
+        <CardTitle className="text-2xl font-bold text-center bg-clip-text text-transparent bg-gradient-to-r from-indigo-500 via-purple-500 to-pink-400">
+          {isSignUp ? "Create Account" : "Welcome back"}
+        </CardTitle>
         <CardDescription className="text-center text-gray-600 dark:text-gray-300">
-          Enter your credentials to sign in
+          {isSignUp 
+            ? "Enter your details to create your account" 
+            : "Enter your credentials to sign in"}
         </CardDescription>
       </CardHeader>
       <form onSubmit={handleSubmit}>
         <CardContent className="space-y-4">
+          {isSignUp && (
+            <div className="space-y-2">
+              <Label htmlFor="username" className="text-gray-700 dark:text-gray-200">Username</Label>
+              <Input 
+                id="username" 
+                name="username"
+                type="text" 
+                placeholder="your_username" 
+                value={formData.username}
+                onChange={handleChange}
+                className="border-indigo-100 focus-visible:ring-indigo-400 dark:border-purple-800/30"
+              />
+            </div>
+          )}
           <div className="space-y-2">
             <Label htmlFor="email" className="text-gray-700 dark:text-gray-200">Email</Label>
             <Input 
@@ -73,9 +79,11 @@ export function LoginForm() {
           <div className="space-y-2">
             <div className="flex items-center justify-between">
               <Label htmlFor="password" className="text-gray-700 dark:text-gray-200">Password</Label>
-              <Button variant="link" className="px-0 font-normal h-auto text-indigo-600 hover:text-indigo-700 dark:text-purple-400 dark:hover:text-purple-300" type="button">
-                Forgot password?
-              </Button>
+              {!isSignUp && (
+                <Button variant="link" className="px-0 font-normal h-auto text-indigo-600 hover:text-indigo-700 dark:text-purple-400 dark:hover:text-purple-300" type="button">
+                  Forgot password?
+                </Button>
+              )}
             </div>
             <Input 
               id="password" 
@@ -94,12 +102,24 @@ export function LoginForm() {
             className="w-full bg-gradient-to-r from-indigo-500 via-purple-500 to-pink-500 hover:from-indigo-600 hover:via-purple-600 hover:to-pink-600 text-white" 
             disabled={isLoading}
           >
-            {isLoading ? "Signing in..." : "Sign in"}
+            {isLoading ? (
+              <>
+                <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                {isSignUp ? "Creating account..." : "Signing in..."}
+              </>
+            ) : (
+              <>{isSignUp ? "Sign up" : "Sign in"}</>
+            )}
           </Button>
           <div className="text-center text-sm text-gray-600 dark:text-gray-300">
-            Don't have an account?{" "}
-            <Button variant="link" className="p-0 h-auto font-normal text-indigo-600 hover:text-indigo-700 dark:text-purple-400 dark:hover:text-purple-300" type="button">
-              Sign up
+            {isSignUp ? "Already have an account?" : "Don't have an account?"}{" "}
+            <Button 
+              variant="link" 
+              className="p-0 h-auto font-normal text-indigo-600 hover:text-indigo-700 dark:text-purple-400 dark:hover:text-purple-300" 
+              type="button"
+              onClick={toggleAuthMode}
+            >
+              {isSignUp ? "Sign in" : "Sign up"}
             </Button>
           </div>
         </CardFooter>
