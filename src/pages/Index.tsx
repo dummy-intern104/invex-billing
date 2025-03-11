@@ -1,12 +1,12 @@
 
 import { BackgroundBeamsWithCollisionDemo } from "@/components/demo/background-beams-demo";
-import { AuthRedirect } from "@/components/auth/AuthRedirect";
 
-export default function Index() {
+const Index = () => {
   return (
-    <>
-      <AuthRedirect />
+    <div className="min-h-screen flex items-center justify-center">
       <BackgroundBeamsWithCollisionDemo />
-    </>
+    </div>
   );
-}
+};
+
+export default Index;
