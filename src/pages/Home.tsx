@@ -2,19 +2,11 @@
 import { useNavigate } from "react-router-dom";
 import { BackgroundPaths } from "@/components/ui/background-paths";
 import { useAuth } from "@/context/AuthContext";
-import { useEffect } from "react";
 
 export default function Home() {
   const navigate = useNavigate();
   const { user } = useAuth();
   
-  // Redirect authenticated users to the external app
-  useEffect(() => {
-    if (user) {
-      window.location.href = "https://invexai-marzlet.netlify.app";
-    }
-  }, [user]);
-
   const handleLoginClick = () => {
     navigate("/login");
   };
