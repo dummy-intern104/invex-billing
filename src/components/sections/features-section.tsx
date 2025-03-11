@@ -41,7 +41,7 @@ export function FeaturesSection() {
   return (
     <section 
       ref={ref}
-      className="py-20 px-4 w-full bg-gradient-to-b from-indigo-200 to-indigo-300 dark:from-indigo-900 dark:to-indigo-800"
+      className="py-20 px-4 w-full bg-white dark:bg-neutral-950"
     >
       <div className="max-w-6xl mx-auto">
         <motion.div

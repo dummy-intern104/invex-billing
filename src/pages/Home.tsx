@@ -13,8 +13,13 @@ export default function Home() {
   };
 
   const handleGetStartedClick = () => {
-    // Always go to login page regardless of auth status
-    navigate("/login");
+    if (user) {
+      // If user is authenticated, redirect directly to the external app
+      window.location.href = "https://invexai-marzlet.netlify.app";
+    } else {
+      // If not authenticated, redirect to login page
+      navigate("/login");
+    }
   };
 
   return (
