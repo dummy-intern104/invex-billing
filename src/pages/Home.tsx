@@ -2,6 +2,7 @@
 import { useNavigate } from "react-router-dom";
 import { BackgroundPaths } from "@/components/ui/background-paths";
 import { useAuth } from "@/context/AuthContext";
+import { FeaturesSection } from "@/components/sections/features-section";
 
 export default function Home() {
   const navigate = useNavigate();
@@ -12,22 +13,21 @@ export default function Home() {
   };
 
   const handleGetStartedClick = () => {
-    // If user is logged in, go to the external app, otherwise go to login
-    if (user) {
-      window.location.href = "https://invexai-marzlet.netlify.app";
-    } else {
-      navigate("/login");
-    }
+    // Always go to login page regardless of auth status
+    navigate("/login");
   };
 
   return (
-    <BackgroundPaths 
-      title="Invex AI"
-      subtitle="Your AI-powered investment assistant that helps you make smarter financial decisions with real-time market analysis."
-      primaryButtonText="Get Started"
-      onPrimaryButtonClick={handleGetStartedClick}
-      showLoginButton={true}
-      onLoginClick={handleLoginClick}
-    />
+    <div className="min-h-screen overflow-x-hidden">
+      <BackgroundPaths 
+        title="Invex AI"
+        subtitle="Your AI-powered investment assistant that helps you make smarter financial decisions with real-time market analysis."
+        primaryButtonText="Get Started"
+        onPrimaryButtonClick={handleGetStartedClick}
+        showLoginButton={true}
+        onLoginClick={handleLoginClick}
+      />
+      <FeaturesSection />
+    </div>
   );
 }

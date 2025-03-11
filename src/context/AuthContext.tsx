@@ -48,7 +48,7 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
       
       if (error) throw error;
       
-      // Redirect to the external site after successful login
+      // Successful login - redirect to the external app
       window.location.href = "https://invexai-marzlet.netlify.app";
     } catch (error) {
       toast({

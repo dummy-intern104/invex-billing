@@ -102,7 +102,7 @@ export function BackgroundPaths({
                     transition={{ duration: 2 }}
                     className="max-w-4xl mx-auto"
                 >
-                    <h1 className="text-5xl sm:text-7xl md:text-8xl font-bold mb-8 tracking-tighter">
+                    <h1 className="text-4xl sm:text-5xl md:text-7xl lg:text-8xl font-bold mb-8 tracking-tighter">
                         {words.map((word, wordIndex) => (
                             <span
                                 key={wordIndex}
@@ -137,7 +137,7 @@ export function BackgroundPaths({
                             initial={{ opacity: 0, y: 20 }}
                             animate={{ opacity: 1, y: 0 }}
                             transition={{ delay: 1, duration: 0.8 }}
-                            className="text-xl md:text-2xl text-gray-700 dark:text-gray-300 mb-12 max-w-3xl mx-auto"
+                            className="text-lg md:text-xl lg:text-2xl text-gray-700 dark:text-gray-300 mb-12 max-w-3xl mx-auto"
                         >
                             {subtitle}
                         </motion.p>
@@ -158,7 +158,7 @@ export function BackgroundPaths({
                                 <Button
                                     variant="ghost"
                                     onClick={onPrimaryButtonClick}
-                                    className="rounded-[1.15rem] px-8 py-6 text-lg font-semibold backdrop-blur-md 
+                                    className="rounded-[1.15rem] px-6 py-5 sm:px-8 sm:py-6 text-base sm:text-lg font-semibold backdrop-blur-md 
                                     bg-white/95 hover:bg-white/100 dark:bg-black/95 dark:hover:bg-black/100 
                                     text-black dark:text-white transition-all duration-300 
                                     group-hover:-translate-y-0.5 border border-black/10 dark:border-white/10
