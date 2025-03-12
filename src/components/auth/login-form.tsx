@@ -7,6 +7,7 @@ import { Label } from "@/components/ui/label";
 import { useAuth } from "@/context/AuthContext";
 import { Loader2 } from "lucide-react";
 import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
+import { useNavigate } from "react-router-dom";
 
 export function LoginForm() {
   const { signIn, signUp, isLoading } = useAuth();
@@ -17,6 +18,7 @@ export function LoginForm() {
     password: "",
     username: "",
   });
+  const navigate = useNavigate();
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const { name, value } = e.target;
@@ -26,22 +28,25 @@ export function LoginForm() {
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     
-    if (userRole === "admin") {
-      if (isSignUp) {
-        await signUp(formData.email, formData.password, formData.username);
-        // After successful signup, redirect to admin app
-        window.location.href = "https://invexai-marzlet.netlify.app";
+    try {
+      if (userRole === "admin") {
+        if (isSignUp) {
+          await signUp(formData.email, formData.password, formData.username);
+          // After successful signup, redirect to admin sign in
+          setIsSignUp(false);
+        } else {
+          // For admin login, redirect to admin app
+          window.location.href = "https://invexai-marzlet.netlify.app";
+        }
       } else {
-        // For admin login, redirect to admin app
-        window.location.href = "https://invexai-marzlet.netlify.app";
+        // For employee role - only login (no signup)
+        const success = await signIn(formData.email, formData.password);
+        if (success) {
+          navigate("/billing");
+        }
       }
-      return;
-    }
-    
-    // For employee role - only login (no signup)
-    const success = await signIn(formData.email, formData.password);
-    if (success) {
-      window.location.href = "/billing";
+    } catch (error) {
+      console.error("Authentication error:", error);
     }
   };
 
@@ -49,12 +54,6 @@ export function LoginForm() {
     // Only allow signup mode if admin role is selected
     if (userRole === "admin") {
       setIsSignUp(!isSignUp);
-    } else {
-      // If trying to switch to signup while in employee mode, switch to admin first
-      if (!isSignUp) {
-        setUserRole("admin");
-        setIsSignUp(true);
-      }
     }
   };
 
@@ -68,7 +67,7 @@ export function LoginForm() {
   };
 
   return (
-    <div className="w-full px-4 sm:px-0 py-4 sm:py-8">
+    <div className="w-full min-h-screen px-4 sm:px-0 py-4 sm:py-8">
       <div className="mb-8 text-center">
         <h1 className="text-3xl sm:text-4xl font-bold bg-gradient-to-r from-indigo-500 via-purple-500 to-pink-500 bg-clip-text text-transparent break-words tracking-wider letter-spacing-wide">
           Invex AI
@@ -120,6 +119,7 @@ export function LoginForm() {
                   placeholder="your_username" 
                   value={formData.username}
                   onChange={handleChange}
+                  required
                   className="border-purple-100 focus-visible:ring-purple-400 dark:border-purple-800/30"
                 />
               </div>
@@ -138,14 +138,7 @@ export function LoginForm() {
               />
             </div>
             <div className="space-y-2">
-              <div className="flex items-center justify-between">
-                <Label htmlFor="password" className="text-gray-700 dark:text-gray-200">Password</Label>
-                {!isSignUp && (
-                  <Button variant="link" className="px-0 font-normal h-auto text-indigo-600 hover:text-indigo-700 dark:text-purple-400 dark:hover:text-purple-300" type="button">
-                    Forgot password?
-                  </Button>
-                )}
-              </div>
+              <Label htmlFor="password" className="text-gray-700 dark:text-gray-200">Password</Label>
               <Input 
                 id="password" 
                 name="password"
