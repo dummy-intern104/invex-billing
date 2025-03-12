@@ -8,7 +8,7 @@ type AuthContextType = {
   user: User | null;
   session: Session | null;
   isLoading: boolean;
-  signIn: (email: string, password: string) => Promise<void>;
+  signIn: (email: string, password: string) => Promise<boolean>;
   signUp: (email: string, password: string, username?: string) => Promise<void>;
   signOut: () => Promise<void>;
 };
@@ -41,21 +41,22 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
     return () => subscription.unsubscribe();
   }, []);
 
-  const signIn = async (email: string, password: string) => {
+  const signIn = async (email: string, password: string): Promise<boolean> => {
     try {
       setIsLoading(true);
       const { error } = await supabase.auth.signInWithPassword({ email, password });
       
       if (error) throw error;
       
-      // Successful login - redirect to the external app
-      window.location.href = "https://invexai-marzlet.netlify.app";
+      // Return true for successful login
+      return true;
     } catch (error) {
       toast({
         title: "Login Failed",
         description: error instanceof Error ? error.message : "An unexpected error occurred",
         variant: "destructive",
       });
+      return false;
     } finally {
       setIsLoading(false);
     }

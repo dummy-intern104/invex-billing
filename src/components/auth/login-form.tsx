@@ -6,10 +6,12 @@ import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle }
 import { Label } from "@/components/ui/label";
 import { useAuth } from "@/context/AuthContext";
 import { Loader2 } from "lucide-react";
+import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
 
 export function LoginForm() {
   const { signIn, signUp, isLoading } = useAuth();
   const [isSignUp, setIsSignUp] = useState(false);
+  const [userRole, setUserRole] = useState("employee");
   const [formData, setFormData] = useState({
     email: "",
     password: "",
@@ -24,10 +26,22 @@ export function LoginForm() {
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     
+    if (userRole === "admin") {
+      // Redirect admin users directly to the external app
+      window.location.href = "https://invexai-marzlet.netlify.app";
+      return;
+    }
+    
     if (isSignUp) {
       await signUp(formData.email, formData.password, formData.username);
+      // After successful signup, redirect to billing page
+      window.location.href = "/billing";
     } else {
-      await signIn(formData.email, formData.password);
+      const success = await signIn(formData.email, formData.password);
+      // After successful signin, redirect to billing page
+      if (success) {
+        window.location.href = "/billing";
+      }
     }
   };
 
@@ -38,7 +52,7 @@ export function LoginForm() {
   return (
     <div className="w-full px-4 sm:px-0 py-4 sm:py-0">
       <div className="mb-8 text-center">
-        <h1 className="text-3xl sm:text-4xl font-bold bg-gradient-to-r from-indigo-500 via-purple-500 to-pink-500 bg-clip-text text-transparent break-words">
+        <h1 className="text-3xl sm:text-4xl font-bold bg-gradient-to-r from-indigo-500 via-purple-500 to-pink-500 bg-clip-text text-transparent break-words tracking-wider">
           Invex AI
         </h1>
         <p className="mt-2 text-gray-600 dark:text-gray-300 px-2 break-words">
@@ -59,6 +73,25 @@ export function LoginForm() {
         </CardHeader>
         <form onSubmit={handleSubmit}>
           <CardContent className="space-y-4">
+            <div className="space-y-2">
+              <Label className="text-gray-700 dark:text-gray-200">I am a:</Label>
+              <RadioGroup 
+                defaultValue="employee" 
+                value={userRole}
+                onValueChange={setUserRole}
+                className="flex space-x-4"
+              >
+                <div className="flex items-center space-x-2">
+                  <RadioGroupItem value="employee" id="employee" />
+                  <Label htmlFor="employee" className="text-gray-700 dark:text-gray-200">Employee</Label>
+                </div>
+                <div className="flex items-center space-x-2">
+                  <RadioGroupItem value="admin" id="admin" />
+                  <Label htmlFor="admin" className="text-gray-700 dark:text-gray-200">Admin</Label>
+                </div>
+              </RadioGroup>
+            </div>
+            
             {isSignUp && (
               <div className="space-y-2">
                 <Label htmlFor="username" className="text-gray-700 dark:text-gray-200">Username</Label>
