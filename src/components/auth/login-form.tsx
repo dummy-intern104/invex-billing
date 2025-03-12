@@ -27,32 +27,50 @@ export function LoginForm() {
     e.preventDefault();
     
     if (userRole === "admin") {
-      // Redirect admin users directly to the external app
-      window.location.href = "https://invexai-marzlet.netlify.app";
+      if (isSignUp) {
+        await signUp(formData.email, formData.password, formData.username);
+        // After successful signup, redirect to admin app
+        window.location.href = "https://invexai-marzlet.netlify.app";
+      } else {
+        // For admin login, redirect to admin app
+        window.location.href = "https://invexai-marzlet.netlify.app";
+      }
       return;
     }
     
-    if (isSignUp) {
-      await signUp(formData.email, formData.password, formData.username);
-      // After successful signup, redirect to billing page
+    // For employee role - only login (no signup)
+    const success = await signIn(formData.email, formData.password);
+    if (success) {
       window.location.href = "/billing";
-    } else {
-      const success = await signIn(formData.email, formData.password);
-      // After successful signin, redirect to billing page
-      if (success) {
-        window.location.href = "/billing";
-      }
     }
   };
 
   const toggleAuthMode = () => {
-    setIsSignUp(!isSignUp);
+    // Only allow signup mode if admin role is selected
+    if (userRole === "admin") {
+      setIsSignUp(!isSignUp);
+    } else {
+      // If trying to switch to signup while in employee mode, switch to admin first
+      if (!isSignUp) {
+        setUserRole("admin");
+        setIsSignUp(true);
+      }
+    }
+  };
+
+  // When role changes, adjust signup state
+  const handleRoleChange = (value: string) => {
+    setUserRole(value);
+    // If switching to employee, force login mode
+    if (value === "employee") {
+      setIsSignUp(false);
+    }
   };
 
   return (
-    <div className="w-full px-4 sm:px-0 py-4 sm:py-0">
+    <div className="w-full px-4 sm:px-0 py-4 sm:py-8">
       <div className="mb-8 text-center">
-        <h1 className="text-3xl sm:text-4xl font-bold bg-gradient-to-r from-indigo-500 via-purple-500 to-pink-500 bg-clip-text text-transparent break-words tracking-wider">
+        <h1 className="text-3xl sm:text-4xl font-bold bg-gradient-to-r from-indigo-500 via-purple-500 to-pink-500 bg-clip-text text-transparent break-words tracking-wider letter-spacing-wide">
           Invex AI
         </h1>
         <p className="mt-2 text-gray-600 dark:text-gray-300 px-2 break-words">
@@ -63,11 +81,11 @@ export function LoginForm() {
       <Card className="w-full max-w-md mx-auto shadow-lg bg-white/90 backdrop-blur-sm border-purple-100 dark:bg-black/40 dark:border-purple-900/30">
         <CardHeader className="space-y-1">
           <CardTitle className="text-xl sm:text-2xl font-bold text-center bg-clip-text text-transparent bg-gradient-to-r from-indigo-500 via-purple-500 to-pink-400">
-            {isSignUp ? "Create Account" : "Welcome back"}
+            {isSignUp ? "Create Admin Account" : "Welcome back"}
           </CardTitle>
           <CardDescription className="text-center text-gray-600 dark:text-gray-300">
             {isSignUp 
-              ? "Enter your details to create your account" 
+              ? "Enter your details to create your admin account" 
               : "Enter your credentials to sign in"}
           </CardDescription>
         </CardHeader>
@@ -78,7 +96,7 @@ export function LoginForm() {
               <RadioGroup 
                 defaultValue="employee" 
                 value={userRole}
-                onValueChange={setUserRole}
+                onValueChange={handleRoleChange}
                 className="flex space-x-4"
               >
                 <div className="flex items-center space-x-2">
@@ -154,17 +172,19 @@ export function LoginForm() {
                 <>{isSignUp ? "Sign up" : "Sign in"}</>
               )}
             </Button>
-            <div className="text-center text-sm text-gray-600 dark:text-gray-300">
-              {isSignUp ? "Already have an account?" : "Don't have an account?"}{" "}
-              <Button 
-                variant="link" 
-                className="p-0 h-auto font-normal text-indigo-600 hover:text-indigo-700 dark:text-purple-400 dark:hover:text-purple-300" 
-                type="button"
-                onClick={toggleAuthMode}
-              >
-                {isSignUp ? "Sign in" : "Sign up"}
-              </Button>
-            </div>
+            {userRole === "admin" && (
+              <div className="text-center text-sm text-gray-600 dark:text-gray-300">
+                {isSignUp ? "Already have an account?" : "Don't have an account?"}{" "}
+                <Button 
+                  variant="link" 
+                  className="p-0 h-auto font-normal text-indigo-600 hover:text-indigo-700 dark:text-purple-400 dark:hover:text-purple-300" 
+                  type="button"
+                  onClick={toggleAuthMode}
+                >
+                  {isSignUp ? "Sign in" : "Sign up"}
+                </Button>
+              </div>
+            )}
           </CardFooter>
         </form>
       </Card>

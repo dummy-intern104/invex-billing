@@ -14,8 +14,8 @@ export default function Home() {
 
   const handleGetStartedClick = () => {
     if (user) {
-      // If user is authenticated, redirect directly to the external app
-      window.location.href = "https://invexai-marzlet.netlify.app";
+      // If user is authenticated, redirect directly to the billing page for employees
+      navigate("/billing");
     } else {
       // If not authenticated, redirect to login page
       navigate("/login");
