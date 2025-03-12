@@ -1,4 +1,3 @@
-
 "use client";
 
 import { motion } from "framer-motion";
@@ -123,7 +122,8 @@ export function BackgroundPaths({
                                         }}
                                         className="inline-block text-transparent bg-clip-text 
                                         bg-gradient-to-r from-indigo-500 via-purple-500 to-pink-500
-                                        dark:from-indigo-400 dark:via-purple-400 dark:to-pink-400"
+                                        dark:from-indigo-400 dark:via-purple-400 dark:to-pink-400
+                                        tracking-normal"
                                     >
                                         {letter}
                                     </motion.span>

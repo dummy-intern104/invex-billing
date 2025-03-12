@@ -36,7 +36,7 @@ export function LoginForm() {
   };
 
   return (
-    <div className="w-full px-4 sm:px-0">
+    <div className="w-full px-4 sm:px-0 py-4 sm:py-0">
       <div className="mb-8 text-center">
         <h1 className="text-3xl sm:text-4xl font-bold bg-gradient-to-r from-indigo-500 via-purple-500 to-pink-500 bg-clip-text text-transparent break-words">
           Invex AI
@@ -46,7 +46,7 @@ export function LoginForm() {
         </p>
       </div>
       
-      <Card className="w-full max-w-md mx-auto shadow-lg bg-white/90 backdrop-blur-sm border-indigo-100 dark:bg-black/40 dark:border-purple-900/30">
+      <Card className="w-full max-w-md mx-auto shadow-lg bg-white/90 backdrop-blur-sm border-purple-100 dark:bg-black/40 dark:border-purple-900/30">
         <CardHeader className="space-y-1">
           <CardTitle className="text-xl sm:text-2xl font-bold text-center bg-clip-text text-transparent bg-gradient-to-r from-indigo-500 via-purple-500 to-pink-400">
             {isSignUp ? "Create Account" : "Welcome back"}
@@ -69,7 +69,7 @@ export function LoginForm() {
                   placeholder="your_username" 
                   value={formData.username}
                   onChange={handleChange}
-                  className="border-indigo-100 focus-visible:ring-indigo-400 dark:border-purple-800/30"
+                  className="border-purple-100 focus-visible:ring-purple-400 dark:border-purple-800/30"
                 />
               </div>
             )}
@@ -83,7 +83,7 @@ export function LoginForm() {
                 value={formData.email}
                 onChange={handleChange}
                 required
-                className="border-indigo-100 focus-visible:ring-indigo-400 dark:border-purple-800/30"
+                className="border-purple-100 focus-visible:ring-purple-400 dark:border-purple-800/30"
               />
             </div>
             <div className="space-y-2">
@@ -102,7 +102,7 @@ export function LoginForm() {
                 value={formData.password}
                 onChange={handleChange}
                 required
-                className="border-indigo-100 focus-visible:ring-indigo-400 dark:border-purple-800/30"
+                className="border-purple-100 focus-visible:ring-purple-400 dark:border-purple-800/30"
               />
             </div>
           </CardContent>
