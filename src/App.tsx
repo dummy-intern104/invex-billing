@@ -9,6 +9,7 @@ import Home from "./pages/Home";
 import Index from "./pages/Index";
 import NotFound from "./pages/NotFound";
 import Billing from "./pages/Billing";
+import Dashboard from "./pages/Dashboard";
 import { useAuth } from "@/context/AuthContext";
 
 const queryClient = new QueryClient();
@@ -34,6 +35,14 @@ const AppRoutes = () => {
         element={
           <ProtectedRoute>
             <Billing />
+          </ProtectedRoute>
+        } 
+      />
+      <Route 
+        path="/dashboard" 
+        element={
+          <ProtectedRoute>
+            <Dashboard />
           </ProtectedRoute>
         } 
       />

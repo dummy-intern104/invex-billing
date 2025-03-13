@@ -20,6 +20,14 @@ export const generateBillNumber = (): string => {
   return `INV-${Date.now().toString().slice(-6)}`;
 };
 
+export const formatCurrency = (amount: number): string => {
+  return amount.toLocaleString('en-IN', {
+    style: 'currency',
+    currency: 'INR',
+    maximumFractionDigits: 2
+  });
+};
+
 export const validateBillForm = (
   billNumber: string,
   email: string,
