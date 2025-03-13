@@ -8,6 +8,7 @@ import BillingHeader from "@/components/billing/BillingHeader";
 import BillForm from "@/components/billing/BillForm";
 import BillHistory from "@/components/billing/BillHistory";
 import { BillHistoryItem, BillItem } from "@/types/billing";
+import { supabase } from "@/integrations/supabase/client";
 
 const Billing = () => {
   const { user, signOut } = useAuth();
@@ -19,30 +20,13 @@ const Billing = () => {
   useEffect(() => {
     if (!user) {
       navigate('/login');
-    } else {
-      // Create sample bill history for UI
-      setBillHistory([
-        { id: "BILL-001", customer: "customer@example.com", total: 250, date: new Date().toLocaleDateString() },
-        { id: "BILL-002", customer: "another@example.com", total: 175.50, date: new Date().toLocaleDateString() },
-        { id: "BILL-003", customer: "test@example.com", total: 450, date: new Date().toLocaleDateString() }
-      ]);
     }
   }, [user, navigate]);
 
-  const handleBillSubmit = (bill: string, email: string, items: BillItem[], total: number) => {
-    // Create new receipt and add to history
-    const newBill = {
-      id: `BILL-${String(billHistory.length + 1).padStart(3, '0')}`,
-      customer: email,
-      total: total,
-      date: new Date().toLocaleDateString()
-    };
-    
-    setBillHistory([newBill, ...billHistory]);
-    
+  const handleBillSubmit = (billNumber: string, email: string, items: BillItem[], total: number) => {
     toast({
       title: "Receipt sent",
-      description: `Receipt ${newBill.id} has been successfully generated and sent to ${email}`,
+      description: `Receipt ${billNumber} has been successfully generated and sent to ${email}`,
     });
   };
 
