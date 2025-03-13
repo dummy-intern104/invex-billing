@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect } from "react";
 import { useAuth } from "@/context/AuthContext";
 import { useNavigate } from "react-router-dom";
@@ -16,7 +15,6 @@ const Billing = () => {
   const { toast } = useToast();
   const [billHistory, setBillHistory] = useState<BillHistoryItem[]>([]);
   
-  // Redirect to login if not authenticated
   useEffect(() => {
     if (!user) {
       navigate('/login');
@@ -36,7 +34,7 @@ const Billing = () => {
   };
 
   if (!user) {
-    return null; // Don't render anything while checking auth state
+    return null;
   }
 
   return (
@@ -45,7 +43,6 @@ const Billing = () => {
 
       <main className="container mx-auto px-4 py-6">
         <div className="grid grid-cols-1 md:grid-cols-12 gap-6">
-          {/* Billing Form - 7 columns on desktop */}
           <div className="md:col-span-7">
             <Card className="bg-white/90 backdrop-blur-sm border-purple-100 dark:bg-black/40 dark:border-purple-900/30 shadow-lg">
               <CardContent className="p-6">
@@ -57,7 +54,6 @@ const Billing = () => {
             </Card>
           </div>
           
-          {/* Bill History - 5 columns on desktop */}
           <div className="md:col-span-5">
             <BillHistory billHistory={billHistory} />
           </div>
