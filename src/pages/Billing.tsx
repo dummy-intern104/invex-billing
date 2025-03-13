@@ -25,8 +25,8 @@ const Billing = () => {
 
   const handleBillSubmit = (billNumber: string, email: string, items: BillItem[], total: number) => {
     toast({
-      title: "Receipt sent",
-      description: `Receipt ${billNumber} has been successfully generated and sent to ${email}`,
+      title: "Invoice generated",
+      description: `Invoice ${billNumber} has been successfully generated and sent to ${email}`,
     });
   };
 
@@ -49,6 +49,9 @@ const Billing = () => {
           <div className="md:col-span-7">
             <Card className="bg-white/90 backdrop-blur-sm border-purple-100 dark:bg-black/40 dark:border-purple-900/30 shadow-lg">
               <CardContent className="p-6">
+                <h2 className="text-xl font-semibold mb-4 text-gray-800 dark:text-gray-200">
+                  Create New Invoice
+                </h2>
                 <BillForm onSubmit={handleBillSubmit} />
               </CardContent>
             </Card>
