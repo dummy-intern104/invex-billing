@@ -35,7 +35,6 @@ export const validateBillForm = (
   
   // Check if at least one item is fully filled
   const validItems = items.filter(item => 
-    item.product_id.trim() !== "" && 
     item.product_name.trim() !== "" && 
     item.quantity > 0 && 
     item.price > 0
@@ -50,4 +49,3 @@ export const validateBillForm = (
 
   return { isValid: true };
 };
-

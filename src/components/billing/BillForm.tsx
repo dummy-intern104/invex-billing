@@ -58,12 +58,24 @@ const BillForm: React.FC<BillFormProps> = ({ onSubmit }) => {
     if (field === 'quantity' || field === 'price') {
       newItems[index][field] = Number(value) || 0;
     } else if (field === 'product_id' && typeof value === 'string') {
-      // Find the selected product
-      const product = products.find(p => p.product_id === value);
-      if (product) {
-        newItems[index].product_id = product.product_id;
-        newItems[index].product_name = product.name;
-        newItems[index].price = product.price;
+      // Handle the manual entry option
+      if (value === "manual") {
+        newItems[index].product_id = "manual";
+        newItems[index].product_name = "";
+        newItems[index].price = 0;
+      } else if (value === "") {
+        // If "Select Product" is chosen
+        newItems[index].product_id = "";
+        newItems[index].product_name = "";
+        newItems[index].price = 0;
+      } else {
+        // Find the selected product
+        const product = products.find(p => p.product_id === value);
+        if (product) {
+          newItems[index].product_id = product.product_id;
+          newItems[index].product_name = product.name;
+          newItems[index].price = product.price;
+        }
       }
     } else {
       // @ts-ignore - TypeScript doesn't know that these fields are strings
@@ -136,7 +148,6 @@ const BillForm: React.FC<BillFormProps> = ({ onSubmit }) => {
         
         // Map items to include bill_id
         const validItems = items.filter(item => 
-          item.product_id.trim() !== "" && 
           item.product_name.trim() !== "" && 
           item.quantity > 0 && 
           item.price > 0
@@ -144,7 +155,7 @@ const BillForm: React.FC<BillFormProps> = ({ onSubmit }) => {
         
         const billItems = validItems.map(item => ({
           bill_id: billId,
-          product_id: item.product_id,
+          product_id: item.product_id === "manual" ? null : item.product_id,
           product_name: item.product_name,
           quantity: item.quantity,
           price: item.price

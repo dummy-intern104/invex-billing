@@ -1,5 +1,5 @@
 
-import React from "react";
+import React, { useEffect } from "react";
 import { Input } from "@/components/ui/input";
 import { BillItem, Product } from "@/types/billing";
 
@@ -16,6 +16,13 @@ const BillItemEntry: React.FC<BillItemEntryProps> = ({
   products, 
   onItemChange 
 }) => {
+  // When manual entry is selected, clear product_id and enable manual name entry
+  useEffect(() => {
+    if (item.product_id === "manual") {
+      onItemChange(index, 'product_name', '');
+    }
+  }, [item.product_id, index, onItemChange]);
+
   return (
     <div className="grid grid-cols-12 gap-3">
       <div className="col-span-3">
@@ -25,6 +32,7 @@ const BillItemEntry: React.FC<BillItemEntryProps> = ({
           className="w-full border border-gray-300 rounded-md px-3 py-2 focus:outline-none focus:ring-2 focus:ring-purple-400"
         >
           <option value="">Select Product</option>
+          <option value="manual">Enter Manually</option>
           {products.map((product) => (
             <option key={product.id} value={product.product_id}>
               {product.name} (₹{product.price.toFixed(2)})
@@ -39,6 +47,7 @@ const BillItemEntry: React.FC<BillItemEntryProps> = ({
           value={item.product_name}
           onChange={(e) => onItemChange(index, 'product_name', e.target.value)}
           className="border-gray-300 focus-visible:ring-purple-400"
+          disabled={item.product_id !== "" && item.product_id !== "manual"}
         />
       </div>
       <div className="col-span-2">
@@ -61,6 +70,7 @@ const BillItemEntry: React.FC<BillItemEntryProps> = ({
           onChange={(e) => onItemChange(index, 'price', e.target.value)}
           className="border-gray-300 focus-visible:ring-purple-400"
           prefix="₹"
+          disabled={item.product_id !== "" && item.product_id !== "manual" && item.product_id !== undefined}
         />
       </div>
     </div>
