@@ -8,9 +8,23 @@ interface ProductsDashboardProps {
   userEmail: string;
 }
 
+// Define proper interfaces for our data
+interface ProductData {
+  id: string;
+  name: string;
+  totalQuantity: number;
+  totalSales: number;
+  count: number;
+}
+
+interface TopProductData {
+  name: string;
+  sales: number;
+}
+
 const ProductsDashboard: React.FC<ProductsDashboardProps> = ({ userEmail }) => {
-  const [productData, setProductData] = useState([]);
-  const [topProducts, setTopProducts] = useState([]);
+  const [productData, setProductData] = useState<ProductData[]>([]);
+  const [topProducts, setTopProducts] = useState<TopProductData[]>([]);
   const [isLoading, setIsLoading] = useState(true);
 
   useEffect(() => {
@@ -49,7 +63,7 @@ const ProductsDashboard: React.FC<ProductsDashboardProps> = ({ userEmail }) => {
 
         if (itemsData) {
           // Process product data
-          const productMap = {};
+          const productMap: Record<string, ProductData> = {};
           
           itemsData.forEach(item => {
             const productId = item.product_id;

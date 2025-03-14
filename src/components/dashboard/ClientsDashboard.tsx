@@ -8,9 +8,21 @@ interface ClientsDashboardProps {
   userEmail: string;
 }
 
+// Define proper interfaces for our data
+interface ClientData {
+  email: string;
+  billCount: number;
+  totalSpent: number;
+}
+
+interface TopClientData {
+  name: string;
+  spent: number;
+}
+
 const ClientsDashboard: React.FC<ClientsDashboardProps> = ({ userEmail }) => {
-  const [clientData, setClientData] = useState([]);
-  const [topClients, setTopClients] = useState([]);
+  const [clientData, setClientData] = useState<ClientData[]>([]);
+  const [topClients, setTopClients] = useState<TopClientData[]>([]);
   const [isLoading, setIsLoading] = useState(true);
 
   useEffect(() => {
@@ -30,7 +42,7 @@ const ClientsDashboard: React.FC<ClientsDashboardProps> = ({ userEmail }) => {
 
         if (billsData) {
           // Process client data
-          const clientMap = {};
+          const clientMap: Record<string, ClientData> = {};
           
           billsData.forEach(bill => {
             const clientEmail = bill.customer_email;
