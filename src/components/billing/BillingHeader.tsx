@@ -41,7 +41,7 @@ const BillingHeader: React.FC<BillingHeaderProps> = ({ user, onLogout }) => {
             </nav>
             
             <div className="flex items-center space-x-2">
-              <div className="text-sm text-gray-600 dark:text-gray-400">
+              <div className="text-sm text-gray-600 dark:text-gray-400 hidden sm:block">
                 {user.email}
               </div>
               <Button 

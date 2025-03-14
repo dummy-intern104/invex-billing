@@ -1,191 +1,145 @@
 
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { Table, TableHeader, TableBody, TableRow, TableHead, TableCell } from "@/components/ui/table";
-import { Loader2, Users, UserCircle } from "lucide-react";
-import { useToast } from "@/hooks/use-toast";
+import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer } from 'recharts';
 import { supabase } from "@/integrations/supabase/client";
-import { Client } from "@/types/billing";
-import { 
-  ChartContainer, 
-  ChartTooltip, 
-  ChartTooltipContent 
-} from "@/components/ui/chart";
-import { 
-  BarChart, 
-  Bar, 
-  XAxis, 
-  YAxis, 
-  CartesianGrid,
-  Tooltip, 
-  Legend,
-  ResponsiveContainer
-} from "recharts";
 
-const ClientsDashboard = () => {
-  const { toast } = useToast();
+interface ClientsDashboardProps {
+  userEmail: string;
+}
+
+const ClientsDashboard: React.FC<ClientsDashboardProps> = ({ userEmail }) => {
+  const [clientData, setClientData] = useState([]);
+  const [topClients, setTopClients] = useState([]);
   const [isLoading, setIsLoading] = useState(true);
-  const [topClients, setTopClients] = useState<Client[]>([]);
-  const [recentClients, setRecentClients] = useState<Client[]>([]);
-  const [clientStats, setClientStats] = useState({
-    totalClients: 0,
-    averagePurchase: 0,
-  });
 
   useEffect(() => {
     const fetchClientData = async () => {
+      setIsLoading(true);
       try {
-        setIsLoading(true);
-        
-        // Fetch top clients by total purchase amount
-        const { data: clients, error: clientsError } = await supabase
-          .from('clients')
+        // Get bills data filtered by the current user's email
+        const { data: billsData, error } = await supabase
+          .from('bills')
           .select('*')
-          .order('total_purchases', { ascending: false });
+          .eq('customer_email', userEmail);
+
+        if (error) {
+          console.error('Error fetching client data:', error);
+          return;
+        }
+
+        if (billsData) {
+          // Process client data
+          const clientMap = {};
           
-        if (clientsError) throw clientsError;
-        
-        // Calculate client stats
-        if (clients) {
-          const totalPurchases = clients.reduce((sum, client) => sum + Number(client.total_purchases), 0);
-          const avgPurchase = clients.length > 0 ? totalPurchases / clients.length : 0;
-          
-          setClientStats({
-            totalClients: clients.length,
-            averagePurchase: avgPurchase,
+          billsData.forEach(bill => {
+            const clientEmail = bill.customer_email;
+            if (!clientMap[clientEmail]) {
+              clientMap[clientEmail] = {
+                email: clientEmail,
+                billCount: 0,
+                totalSpent: 0
+              };
+            }
+            
+            clientMap[clientEmail].billCount += 1;
+            clientMap[clientEmail].totalSpent += bill.total || 0;
           });
           
-          // Set top clients
-          setTopClients(clients.slice(0, 5));
+          const clients = Object.values(clientMap);
           
-          // Set recent clients (sort by updated_at)
-          const recentClientsList = [...clients].sort((a, b) => 
-            new Date(b.updated_at).getTime() - new Date(a.updated_at).getTime()
-          ).slice(0, 5);
+          // Sort by total spent
+          const sortedClients = [...clients].sort((a, b) => b.totalSpent - a.totalSpent);
           
-          setRecentClients(recentClientsList);
+          setClientData(sortedClients);
+          setTopClients(sortedClients.slice(0, 5).map(client => ({
+            name: client.email.split('@')[0], // Just use the part before @ for brevity
+            spent: client.totalSpent
+          })));
         }
-        
       } catch (error) {
-        console.error("Error fetching client data:", error);
-        toast({
-          title: "Error",
-          description: "Could not fetch client data",
-          variant: "destructive",
-        });
+        console.error('Error in clients data fetch:', error);
       } finally {
         setIsLoading(false);
       }
     };
 
-    fetchClientData();
-  }, [toast]);
+    if (userEmail) {
+      fetchClientData();
+    }
+  }, [userEmail]);
 
   if (isLoading) {
     return (
-      <div className="flex justify-center items-center h-64">
-        <Loader2 className="h-8 w-8 text-purple-500 animate-spin" />
+      <div className="flex items-center justify-center h-64">
+        <div className="text-gray-500 dark:text-gray-400">Loading client data...</div>
       </div>
     );
   }
 
   return (
-    <div className="space-y-6">
-      <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-        <Card className="bg-white/90 dark:bg-black/40 backdrop-blur-sm border-purple-100 dark:border-purple-900/30">
-          <CardHeader>
-            <CardTitle className="flex items-center gap-2">
-              <Users className="h-5 w-5" />
-              <span>Client Overview</span>
-            </CardTitle>
-          </CardHeader>
-          <CardContent>
-            <div className="grid grid-cols-2 gap-4 mb-6">
-              <div className="bg-purple-100 dark:bg-purple-900/30 p-4 rounded-lg text-center">
-                <p className="text-muted-foreground text-sm">Total Clients</p>
-                <p className="text-3xl font-bold">{clientStats.totalClients}</p>
-              </div>
-              <div className="bg-purple-100 dark:bg-purple-900/30 p-4 rounded-lg text-center">
-                <p className="text-muted-foreground text-sm">Avg. Purchase</p>
-                <p className="text-3xl font-bold">₹{clientStats.averagePurchase.toLocaleString('en-IN', { maximumFractionDigits: 0 })}</p>
-              </div>
+    <div className="grid grid-cols-1 gap-6">
+      <Card className="bg-white/90 dark:bg-gray-800/50 backdrop-blur-sm">
+        <CardHeader>
+          <CardTitle>Top Clients by Spending</CardTitle>
+        </CardHeader>
+        <CardContent className="h-[400px]">
+          {topClients.length > 0 ? (
+            <ResponsiveContainer width="100%" height="100%">
+              <BarChart data={topClients}>
+                <CartesianGrid strokeDasharray="3 3" />
+                <XAxis dataKey="name" />
+                <YAxis />
+                <Tooltip 
+                  formatter={(value) => [`₹${value}`, 'Spent']}
+                  labelFormatter={(label) => `Client: ${label}`}
+                />
+                <Bar dataKey="spent" fill="#82ca9d" />
+              </BarChart>
+            </ResponsiveContainer>
+          ) : (
+            <div className="flex items-center justify-center h-full">
+              <div className="text-gray-500 dark:text-gray-400">No client data available</div>
             </div>
-            
-            <div className="h-64">
-              <ChartContainer
-                config={{
-                  value: { label: "Total Purchase", color: "#8b5cf6" },
-                }}
-              >
-                <ResponsiveContainer width="100%" height="100%">
-                  <BarChart
-                    data={topClients.map(client => ({
-                      name: client.email.split('@')[0], // Just showing username part for chart
-                      value: Number(client.total_purchases)
-                    }))}
-                    margin={{ top: 5, right: 30, left: 20, bottom: 30 }}
-                    layout="vertical"
-                  >
-                    <CartesianGrid strokeDasharray="3 3" opacity={0.2} horizontal={true} vertical={false} />
-                    <XAxis type="number" tick={{ fontSize: 12 }} tickFormatter={(value) => `₹${value.toLocaleString('en-IN', { maximumFractionDigits: 0 })}`} />
-                    <YAxis type="category" dataKey="name" tick={{ fontSize: 12 }} width={100} />
-                    <ChartTooltip
-                      content={
-                        <ChartTooltipContent
-                          formatter={(value) => {
-                            return [`₹${value.toLocaleString('en-IN', { maximumFractionDigits: 2 })}`, "Total Purchase"];
-                          }}
-                        />
-                      }
-                    />
-                    <Legend />
-                    <Bar 
-                      dataKey="value" 
-                      name="Total Purchase"
-                      fill="var(--color-value, #8b5cf6)" 
-                    />
-                  </BarChart>
-                </ResponsiveContainer>
-              </ChartContainer>
-            </div>
-          </CardContent>
-        </Card>
-        
-        <Card className="bg-white/90 dark:bg-black/40 backdrop-blur-sm border-purple-100 dark:border-purple-900/30">
-          <CardHeader>
-            <CardTitle className="flex items-center gap-2">
-              <UserCircle className="h-5 w-5" />
-              <span>Recent Clients</span>
-            </CardTitle>
-          </CardHeader>
-          <CardContent>
-            {recentClients.length > 0 ? (
-              <Table>
-                <TableHeader>
-                  <TableRow>
-                    <TableHead>Email</TableHead>
-                    <TableHead>Purchases</TableHead>
-                    <TableHead>Total Spent</TableHead>
-                  </TableRow>
-                </TableHeader>
-                <TableBody>
-                  {recentClients.map((client) => (
-                    <TableRow key={client.id}>
-                      <TableCell className="font-medium">{client.email}</TableCell>
-                      <TableCell>{client.purchase_count}</TableCell>
-                      <TableCell>₹{parseFloat(client.total_purchases.toString()).toLocaleString('en-IN', { maximumFractionDigits: 2 })}</TableCell>
-                    </TableRow>
-                  ))}
-                </TableBody>
-              </Table>
-            ) : (
-              <div className="text-center py-6 text-muted-foreground">
-                No client data available
-              </div>
-            )}
-          </CardContent>
-        </Card>
-      </div>
+          )}
+        </CardContent>
+      </Card>
+      
+      <Card className="bg-white/90 dark:bg-gray-800/50 backdrop-blur-sm">
+        <CardHeader>
+          <CardTitle>Client Purchase Details</CardTitle>
+        </CardHeader>
+        <CardContent>
+          <div className="overflow-x-auto">
+            <table className="w-full">
+              <thead>
+                <tr className="border-b">
+                  <th className="py-2 text-left">Client Email</th>
+                  <th className="py-2 text-right">Invoices</th>
+                  <th className="py-2 text-right">Total Spent</th>
+                </tr>
+              </thead>
+              <tbody>
+                {clientData.length > 0 ? (
+                  clientData.map((client) => (
+                    <tr key={client.email} className="border-b">
+                      <td className="py-2 text-left">{client.email}</td>
+                      <td className="py-2 text-right">{client.billCount}</td>
+                      <td className="py-2 text-right">₹{client.totalSpent.toLocaleString()}</td>
+                    </tr>
+                  ))
+                ) : (
+                  <tr>
+                    <td colSpan={3} className="py-4 text-center text-gray-500 dark:text-gray-400">
+                      No client data available
+                    </td>
+                  </tr>
+                )}
+              </tbody>
+            </table>
+          </div>
+        </CardContent>
+      </Card>
     </div>
   );
 };

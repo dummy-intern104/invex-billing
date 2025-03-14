@@ -1,244 +1,168 @@
 
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { Loader2, CreditCard, TrendingUp, Users, Calendar } from "lucide-react";
-import { useToast } from "@/hooks/use-toast";
+import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, PieChart, Pie, Cell } from 'recharts';
 import { supabase } from "@/integrations/supabase/client";
-import { 
-  ChartContainer, 
-  ChartTooltip, 
-  ChartTooltipContent 
-} from "@/components/ui/chart";
-import { 
-  LineChart, 
-  Line, 
-  XAxis, 
-  YAxis, 
-  CartesianGrid, 
-  ResponsiveContainer,
-  Tooltip, 
-  Legend 
-} from "recharts";
-import { format, subDays, startOfToday } from "date-fns";
 
-const SalesDashboard = () => {
-  const { toast } = useToast();
+interface SalesDashboardProps {
+  userEmail: string;
+}
+
+const SalesDashboard: React.FC<SalesDashboardProps> = ({ userEmail }) => {
+  const [salesData, setSalesData] = useState([]);
+  const [totalSales, setTotalSales] = useState(0);
+  const [averageSale, setAverageSale] = useState(0);
+  const [invoiceCount, setInvoiceCount] = useState(0);
   const [isLoading, setIsLoading] = useState(true);
-  const [salesData, setSalesData] = useState<any[]>([]);
-  const [totalSales, setTotalSales] = useState<number>(0);
-  const [avgTicketSize, setAvgTicketSize] = useState<number>(0);
-  const [totalTransactions, setTotalTransactions] = useState<number>(0);
-  const [totalCustomers, setTotalCustomers] = useState<number>(0);
 
   useEffect(() => {
     const fetchSalesData = async () => {
+      setIsLoading(true);
       try {
-        setIsLoading(true);
-        
-        // Get all bills
-        const { data: bills, error: billsError } = await supabase
+        // Get sales data filtered by the current user's email
+        const { data: billsData, error } = await supabase
           .from('bills')
           .select('*')
-          .order('created_at', { ascending: true });
-          
-        if (billsError) throw billsError;
-        
-        // Get unique customers
-        const { count: customerCount, error: countError } = await supabase
-          .from('clients')
-          .select('*', { count: 'exact', head: true });
-          
-        if (countError) throw countError;
-        
-        // Process data for chart - group by date
-        const today = startOfToday();
-        const last30Days = Array.from({ length: 30 }, (_, i) => {
-          const date = subDays(today, 29 - i);
-          return format(date, 'yyyy-MM-dd');
-        });
-        
-        // Initialize with all dates having 0 sales
-        const salesByDate: Record<string, { date: string, sales: number, transactions: number }> = {};
-        last30Days.forEach(date => {
-          salesByDate[date] = { date, sales: 0, transactions: 0 };
-        });
-        
-        // Aggregate sales data
-        let totalAmount = 0;
-        
-        if (bills) {
-          bills.forEach(bill => {
-            const billDate = format(new Date(bill.created_at), 'yyyy-MM-dd');
-            if (salesByDate[billDate]) {
-              salesByDate[billDate].sales += Number(bill.total);
-              salesByDate[billDate].transactions += 1;
-              totalAmount += Number(bill.total);
-            }
-          });
+          .eq('customer_email', userEmail)
+          .order('created_at', { ascending: false });
+
+        if (error) {
+          console.error('Error fetching sales data:', error);
+          return;
         }
-        
-        // Convert to array for recharts
-        const chartData = Object.values(salesByDate);
-        
-        setSalesData(chartData);
-        setTotalSales(totalAmount);
-        setTotalTransactions(bills?.length || 0);
-        setAvgTicketSize(totalAmount / (bills?.length || 1));
-        setTotalCustomers(customerCount || 0);
+
+        if (billsData) {
+          // Calculate metrics
+          const total = billsData.reduce((sum, bill) => sum + (bill.total || 0), 0);
+          const count = billsData.length;
+          const avg = count > 0 ? total / count : 0;
+
+          setTotalSales(total);
+          setInvoiceCount(count);
+          setAverageSale(avg);
+
+          // Process data for charts
+          const processedData = billsData.slice(0, 7).map(bill => ({
+            name: new Date(bill.created_at).toLocaleDateString(),
+            amount: bill.total || 0,
+          }));
+
+          setSalesData(processedData);
+        }
       } catch (error) {
-        console.error("Error fetching sales data:", error);
-        toast({
-          title: "Error",
-          description: "Could not fetch sales data",
-          variant: "destructive",
-        });
+        console.error('Error in sales data fetch:', error);
       } finally {
         setIsLoading(false);
       }
     };
 
-    fetchSalesData();
-  }, [toast]);
+    if (userEmail) {
+      fetchSalesData();
+    }
+  }, [userEmail]);
+
+  const COLORS = ['#8884d8', '#83a6ed', '#8dd1e1', '#82ca9d', '#a4de6c'];
 
   if (isLoading) {
     return (
-      <div className="flex justify-center items-center h-64">
-        <Loader2 className="h-8 w-8 text-purple-500 animate-spin" />
+      <div className="flex items-center justify-center h-64">
+        <div className="text-gray-500 dark:text-gray-400">Loading sales data...</div>
       </div>
     );
   }
 
   return (
-    <div className="space-y-6">
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
-        <Card className="bg-white/90 dark:bg-black/40 backdrop-blur-sm border-purple-100 dark:border-purple-900/30">
-          <CardHeader className="pb-2">
-            <CardTitle className="text-sm font-medium text-muted-foreground">Total Sales</CardTitle>
-          </CardHeader>
-          <CardContent>
-            <div className="flex items-center justify-between">
-              <div className="text-2xl font-bold">₹{totalSales.toLocaleString('en-IN', { maximumFractionDigits: 2 })}</div>
-              <CreditCard className="h-4 w-4 text-muted-foreground" />
-            </div>
-          </CardContent>
-        </Card>
-        
-        <Card className="bg-white/90 dark:bg-black/40 backdrop-blur-sm border-purple-100 dark:border-purple-900/30">
-          <CardHeader className="pb-2">
-            <CardTitle className="text-sm font-medium text-muted-foreground">Avg. Ticket Size</CardTitle>
-          </CardHeader>
-          <CardContent>
-            <div className="flex items-center justify-between">
-              <div className="text-2xl font-bold">₹{avgTicketSize.toLocaleString('en-IN', { maximumFractionDigits: 2 })}</div>
-              <TrendingUp className="h-4 w-4 text-muted-foreground" />
-            </div>
-          </CardContent>
-        </Card>
-        
-        <Card className="bg-white/90 dark:bg-black/40 backdrop-blur-sm border-purple-100 dark:border-purple-900/30">
-          <CardHeader className="pb-2">
-            <CardTitle className="text-sm font-medium text-muted-foreground">Total Transactions</CardTitle>
-          </CardHeader>
-          <CardContent>
-            <div className="flex items-center justify-between">
-              <div className="text-2xl font-bold">{totalTransactions}</div>
-              <Calendar className="h-4 w-4 text-muted-foreground" />
-            </div>
-          </CardContent>
-        </Card>
-        
-        <Card className="bg-white/90 dark:bg-black/40 backdrop-blur-sm border-purple-100 dark:border-purple-900/30">
-          <CardHeader className="pb-2">
-            <CardTitle className="text-sm font-medium text-muted-foreground">Total Customers</CardTitle>
-          </CardHeader>
-          <CardContent>
-            <div className="flex items-center justify-between">
-              <div className="text-2xl font-bold">{totalCustomers}</div>
-              <Users className="h-4 w-4 text-muted-foreground" />
-            </div>
-          </CardContent>
-        </Card>
-      </div>
-      
-      <Card className="bg-white/90 dark:bg-black/40 backdrop-blur-sm border-purple-100 dark:border-purple-900/30">
-        <CardHeader>
-          <CardTitle>Sales Trend (Last 30 Days)</CardTitle>
+    <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+      <Card className="bg-white/90 dark:bg-gray-800/50 backdrop-blur-sm">
+        <CardHeader className="pb-2">
+          <CardTitle className="text-sm font-medium">Total Sales</CardTitle>
         </CardHeader>
         <CardContent>
-          <div className="h-80">
-            <ChartContainer
-              config={{
-                sales: { label: "Sales", color: "#8b5cf6" },
-                transactions: { label: "Transactions", color: "#06b6d4" },
-              }}
-            >
-              <ResponsiveContainer width="100%" height="100%">
-                <LineChart
+          <div className="text-2xl font-bold">₹{totalSales.toLocaleString()}</div>
+          <p className="text-xs text-muted-foreground">
+            From {invoiceCount} invoices
+          </p>
+        </CardContent>
+      </Card>
+      
+      <Card className="bg-white/90 dark:bg-gray-800/50 backdrop-blur-sm">
+        <CardHeader className="pb-2">
+          <CardTitle className="text-sm font-medium">Average Sale</CardTitle>
+        </CardHeader>
+        <CardContent>
+          <div className="text-2xl font-bold">₹{averageSale.toLocaleString(undefined, { maximumFractionDigits: 0 })}</div>
+          <p className="text-xs text-muted-foreground">Per invoice</p>
+        </CardContent>
+      </Card>
+      
+      <Card className="bg-white/90 dark:bg-gray-800/50 backdrop-blur-sm">
+        <CardHeader className="pb-2">
+          <CardTitle className="text-sm font-medium">Invoice Count</CardTitle>
+        </CardHeader>
+        <CardContent>
+          <div className="text-2xl font-bold">{invoiceCount}</div>
+          <p className="text-xs text-muted-foreground">Total invoices</p>
+        </CardContent>
+      </Card>
+      
+      <Card className="md:col-span-2 bg-white/90 dark:bg-gray-800/50 backdrop-blur-sm">
+        <CardHeader>
+          <CardTitle>Sales Overview</CardTitle>
+        </CardHeader>
+        <CardContent className="h-[300px]">
+          {salesData.length > 0 ? (
+            <ResponsiveContainer width="100%" height="100%">
+              <BarChart data={salesData}>
+                <CartesianGrid strokeDasharray="3 3" />
+                <XAxis dataKey="name" />
+                <YAxis />
+                <Tooltip 
+                  formatter={(value) => [`₹${value}`, 'Amount']}
+                  labelFormatter={(label) => `Date: ${label}`}
+                />
+                <Bar dataKey="amount" fill="#8884d8" />
+              </BarChart>
+            </ResponsiveContainer>
+          ) : (
+            <div className="flex items-center justify-center h-full">
+              <div className="text-gray-500 dark:text-gray-400">No sales data available</div>
+            </div>
+          )}
+        </CardContent>
+      </Card>
+      
+      <Card className="bg-white/90 dark:bg-gray-800/50 backdrop-blur-sm">
+        <CardHeader>
+          <CardTitle>Sales Distribution</CardTitle>
+        </CardHeader>
+        <CardContent className="h-[300px]">
+          {salesData.length > 0 ? (
+            <ResponsiveContainer width="100%" height="100%">
+              <PieChart>
+                <Pie
                   data={salesData}
-                  margin={{ top: 5, right: 30, left: 20, bottom: 30 }}
+                  cx="50%"
+                  cy="50%"
+                  outerRadius={80}
+                  fill="#8884d8"
+                  dataKey="amount"
+                  label={({ name, percent }) => `${name}: ${(percent * 100).toFixed(0)}%`}
                 >
-                  <CartesianGrid strokeDasharray="3 3" opacity={0.2} />
-                  <XAxis 
-                    dataKey="date" 
-                    tick={{ fontSize: 12 }} 
-                    tickFormatter={(value) => {
-                      const date = new Date(value);
-                      return format(date, 'dd MMM');
-                    }}
-                    angle={-45}
-                    textAnchor="end"
-                    height={60}
-                  />
-                  <YAxis 
-                    yAxisId="left" 
-                    tick={{ fontSize: 12 }} 
-                    tickFormatter={(value) => `₹${value}`} 
-                  />
-                  <YAxis 
-                    yAxisId="right" 
-                    orientation="right" 
-                    tick={{ fontSize: 12 }} 
-                  />
-                  <ChartTooltip
-                    content={
-                      <ChartTooltipContent
-                        formatter={(value, name) => {
-                          if (name === "sales") {
-                            return [`₹${value.toLocaleString('en-IN', { maximumFractionDigits: 2 })}`, "Sales"];
-                          }
-                          return [value, "Transactions"];
-                        }}
-                        labelFormatter={(label) => {
-                          const date = new Date(label);
-                          return format(date, 'dd MMM yyyy');
-                        }}
-                      />
-                    }
-                  />
-                  <Legend />
-                  <Line
-                    name="Sales"
-                    key="sales"
-                    type="monotone"
-                    dataKey="sales"
-                    yAxisId="left"
-                    stroke="var(--color-sales, #8b5cf6)"
-                    activeDot={{ r: 8 }}
-                    strokeWidth={2}
-                  />
-                  <Line
-                    name="Transactions"
-                    key="transactions"
-                    type="monotone"
-                    dataKey="transactions"
-                    yAxisId="right"
-                    stroke="var(--color-transactions, #06b6d4)"
-                    strokeWidth={2}
-                  />
-                </LineChart>
-              </ResponsiveContainer>
-            </ChartContainer>
-          </div>
+                  {salesData.map((entry, index) => (
+                    <Cell key={`cell-${index}`} fill={COLORS[index % COLORS.length]} />
+                  ))}
+                </Pie>
+                <Tooltip 
+                  formatter={(value) => [`₹${value}`, 'Amount']}
+                  labelFormatter={(label) => `Date: ${label}`}
+                />
+              </PieChart>
+            </ResponsiveContainer>
+          ) : (
+            <div className="flex items-center justify-center h-full">
+              <div className="text-gray-500 dark:text-gray-400">No sales data available</div>
+            </div>
+          )}
         </CardContent>
       </Card>
     </div>

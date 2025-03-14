@@ -1,3 +1,4 @@
+
 import React, { useState, useEffect } from "react";
 import { useAuth } from "@/context/AuthContext";
 import { useNavigate } from "react-router-dom";
@@ -8,6 +9,7 @@ import BillForm from "@/components/billing/BillForm";
 import BillHistory from "@/components/billing/BillHistory";
 import { BillHistoryItem, BillItem } from "@/types/billing";
 import { supabase } from "@/integrations/supabase/client";
+import MobileNavbar from "@/components/layout/MobileNavbar";
 
 const Billing = () => {
   const { user, signOut } = useAuth();
@@ -18,7 +20,33 @@ const Billing = () => {
   useEffect(() => {
     if (!user) {
       navigate('/login');
+      return;
     }
+    
+    // Fetch bill history for the current user only
+    const fetchBillHistory = async () => {
+      try {
+        const { data, error } = await supabase
+          .from('bills')
+          .select('*')
+          .eq('customer_email', user.email)
+          .order('created_at', { ascending: false })
+          .limit(10);
+          
+        if (error) {
+          console.error("Error fetching bill history:", error);
+          return;
+        }
+        
+        if (data) {
+          setBillHistory(data as BillHistoryItem[]);
+        }
+      } catch (error) {
+        console.error("Error in bill history fetch:", error);
+      }
+    };
+    
+    fetchBillHistory();
   }, [user, navigate]);
 
   const handleBillSubmit = (billNumber: string, email: string, items: BillItem[], total: number) => {
@@ -26,6 +54,24 @@ const Billing = () => {
       title: "Invoice generated",
       description: `Invoice ${billNumber} has been successfully generated and sent to ${email}`,
     });
+    
+    // Refresh bill history after a new bill is submitted
+    if (user) {
+      const fetchBillHistory = async () => {
+        const { data } = await supabase
+          .from('bills')
+          .select('*')
+          .eq('customer_email', user.email)
+          .order('created_at', { ascending: false })
+          .limit(10);
+          
+        if (data) {
+          setBillHistory(data as BillHistoryItem[]);
+        }
+      };
+      
+      fetchBillHistory();
+    }
   };
 
   const handleLogout = async () => {
@@ -59,6 +105,8 @@ const Billing = () => {
           </div>
         </div>
       </main>
+      
+      <MobileNavbar />
     </div>
   );
 };
