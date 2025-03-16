@@ -8,10 +8,13 @@ import {
 } from "@/components/ui/sheet";
 import { Menu, FileText, LayoutDashboard } from "lucide-react";
 import { Button } from "@/components/ui/button";
+import { useIsMobile } from "@/hooks/use-mobile";
 
 const MobileNavbar: React.FC = () => {
+  const isMobile = useIsMobile();
+
   return (
-    <div className="fixed bottom-4 left-4 z-50 md:hidden">
+    <div className={`fixed ${isMobile ? 'top-4 left-4' : 'bottom-4 left-4'} z-50 md:hidden`}>
       <Sheet>
         <SheetTrigger asChild>
           <Button size="icon" className="rounded-full shadow-lg bg-purple-600 hover:bg-purple-700 text-white">

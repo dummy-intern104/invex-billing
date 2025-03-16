@@ -23,7 +23,7 @@ export default function Home() {
   };
 
   return (
-    <div className="min-h-screen overflow-x-hidden">
+    <div className="min-h-screen overflow-x-hidden flex flex-col">
       <BackgroundPaths 
         title="Invex AI"
         subtitle="Your AI-powered investment assistant that helps you make smarter financial decisions with real-time market analysis."
@@ -33,6 +33,12 @@ export default function Home() {
         onLoginClick={handleLoginClick}
       />
       <FeaturesSection />
+      
+      <footer className="mt-auto py-6 text-center text-sm text-gray-500 dark:text-gray-400 bg-white/80 dark:bg-gray-900/80 backdrop-blur-sm">
+        <div className="container mx-auto px-4">
+          © 2025 Marzlet Info Tech. Developed by our dedicated team. <a href="https://invexai-team.netlify.app" className="text-purple-600 hover:text-purple-500 dark:text-purple-400 dark:hover:text-purple-300 transition-colors" target="_blank" rel="noopener noreferrer">invexai-team.netlify.app</a>
+        </div>
+      </footer>
     </div>
   );
 }
