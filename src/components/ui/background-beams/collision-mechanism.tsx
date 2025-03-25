@@ -69,21 +69,23 @@ export const CollisionMechanism = React.forwardRef<
       }
     };
 
-    const animationInterval = setInterval(checkCollision, 50);
+    // Reduce the collision check frequency from 50ms to 100ms for better performance
+    const animationInterval = setInterval(checkCollision, 100);
 
     return () => clearInterval(animationInterval);
   }, [cycleCollisionDetected, containerRef]);
 
   useEffect(() => {
     if (collision.detected && collision.coordinates) {
+      // Increase the delay before resetting to reduce CPU usage
       setTimeout(() => {
         setCollision({ detected: false, coordinates: null });
         setCycleCollisionDetected(false);
-      }, 2000);
+      }, 2500);
 
       setTimeout(() => {
         setBeamKey((prevKey) => prevKey + 1);
-      }, 2000);
+      }, 2500);
     }
   }, [collision]);
 

@@ -8,7 +8,8 @@ export const Explosion = ({
   explosionColor = "from-indigo-500 to-purple-500",
   ...props 
 }: React.HTMLProps<HTMLDivElement> & { explosionColor?: string }) => {
-  const spans = Array.from({ length: 20 }, (_, index) => ({
+  // Reduce the number of particles from 20 to 12 for better performance
+  const spans = Array.from({ length: 12 }, (_, index) => ({
     id: index,
     initialX: 0,
     initialY: 0,
