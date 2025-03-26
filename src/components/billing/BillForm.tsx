@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect } from "react";
 import { useToast } from "@/hooks/use-toast";
 import { BillItem, Product } from "@/types/billing";
@@ -61,8 +60,14 @@ const BillForm: React.FC<BillFormProps> = ({ onSubmit }) => {
       // Handle the manual entry option
       if (value === "manual") {
         newItems[index].product_id = "manual";
-        newItems[index].product_name = "";
-        newItems[index].price = 0;
+        // Don't reset product_name if already set - let the user keep their manual entry
+        if (!newItems[index].product_name) {
+          newItems[index].product_name = "";
+        }
+        // Only reset price if it wasn't manually set or was 0
+        if (newItems[index].price === 0) {
+          newItems[index].price = 0;
+        }
       } else if (value === "") {
         // If "Select Product" is chosen
         newItems[index].product_id = "";
@@ -78,6 +83,7 @@ const BillForm: React.FC<BillFormProps> = ({ onSubmit }) => {
         }
       }
     } else {
+      // For string fields like product_name
       // @ts-ignore - TypeScript doesn't know that these fields are strings
       newItems[index][field] = value;
     }

@@ -19,9 +19,12 @@ const BillItemEntry: React.FC<BillItemEntryProps> = ({
   // When manual entry is selected, clear product_id and enable manual name entry
   useEffect(() => {
     if (item.product_id === "manual") {
-      onItemChange(index, 'product_name', '');
+      // Only set product_name to empty if it's not already filled in
+      if (!item.product_name) {
+        onItemChange(index, 'product_name', '');
+      }
     }
-  }, [item.product_id, index, onItemChange]);
+  }, [item.product_id, index, onItemChange, item.product_name]);
 
   return (
     <div className="grid grid-cols-12 gap-3">
@@ -69,8 +72,7 @@ const BillItemEntry: React.FC<BillItemEntryProps> = ({
           value={item.price || ""}
           onChange={(e) => onItemChange(index, 'price', e.target.value)}
           className="border-gray-300 focus-visible:ring-purple-400"
-          prefix="₹"
-          disabled={item.product_id !== "" && item.product_id !== "manual" && item.product_id !== undefined}
+          disabled={item.product_id !== "" && item.product_id !== "manual"}
         />
       </div>
     </div>
