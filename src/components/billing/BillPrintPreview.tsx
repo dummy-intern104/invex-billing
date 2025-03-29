@@ -1,10 +1,15 @@
 
-import React, { useRef } from "react";
+import React, { useRef, useEffect, useState } from "react";
 import { BillItem } from "@/types/billing";
 import BillActions from "./BillActions";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Separator } from "@/components/ui/separator";
 import { format } from "date-fns";
+import { useCompanyProfile } from "@/hooks/useCompanyProfile";
+import { CompanyProfile } from "@/components/profile/CompanyProfileForm";
+import { useNavigate } from "react-router-dom";
+import { Button } from "@/components/ui/button";
+import { Settings } from "lucide-react";
 
 interface BillPrintPreviewProps {
   billNumber: string;
@@ -18,6 +23,21 @@ interface BillPrintPreviewProps {
   isLoading: boolean;
 }
 
+const defaultCompanyProfile: CompanyProfile = {
+  logo_url: "/lovable-uploads/9a0a0524-de7e-4a38-b67e-39f84a4e4984.png",
+  signature_url: "",
+  company_name: "Marzelet Info Technology",
+  address: "Ground floor Old no.33, New No 10 Andavar Street, Sivashakthi Nagar, Chennai",
+  phone: "9629997391",
+  email: "admin@marzelet.info",
+  gstin: "33AASCSM2238G1ZJ",
+  state: "33-Tamil Nadu",
+  bank_name: "INDIAN OVERSEAS BANK, CHENNAI, AVADI",
+  account_number: "00080200000163",
+  ifsc_code: "IOBA0000008",
+  account_holder_name: "Marzelet Info Technology Pvt Ltd"
+};
+
 const BillPrintPreview: React.FC<BillPrintPreviewProps> = ({
   billNumber,
   email,
@@ -30,8 +50,17 @@ const BillPrintPreview: React.FC<BillPrintPreviewProps> = ({
   isLoading
 }) => {
   const printRef = useRef<HTMLDivElement>(null);
+  const navigate = useNavigate();
+  const { profile, loading } = useCompanyProfile();
+  const [companyData, setCompanyData] = useState<CompanyProfile>(defaultCompanyProfile);
   const validItems = items.filter(item => item.product_name && item.quantity > 0);
   const currentDate = format(new Date(), "dd-MM-yyyy");
+  
+  useEffect(() => {
+    if (profile) {
+      setCompanyData(profile);
+    }
+  }, [profile]);
   
   // Function to convert number to words
   const numberToWords = (num: number) => {
@@ -99,6 +128,7 @@ const BillPrintPreview: React.FC<BillPrintPreviewProps> = ({
               .amount-table { width: 38%; }
               .amount-table table { border-collapse: collapse; width: 100%; }
               .amount-table td { padding: 5px; border: none; text-align: right; }
+              .signature-image { max-width: 150px; max-height: 60px; }
             </style>
           </head>
           <body>
@@ -120,18 +150,35 @@ const BillPrintPreview: React.FC<BillPrintPreviewProps> = ({
   
   return (
     <div className="print-preview bg-white p-6 rounded-lg border border-gray-200 shadow-lg">
+      <div className="flex justify-end mb-4">
+        <Button
+          variant="outline"
+          size="sm"
+          className="flex items-center gap-1 text-xs"
+          onClick={() => navigate('/company-profile')}
+        >
+          <Settings className="h-3 w-3" />
+          Edit Company Details
+        </Button>
+      </div>
+      
       <div ref={printRef} className="invoice-container">
         {/* Company Header */}
         <div className="header">
           <div className="logo">
-            <img src="/lovable-uploads/f7274a46-e7a9-4cd9-8b66-22332c791f91.png" alt="Company Logo" width="80" />
+            {companyData.logo_url ? (
+              <img src={companyData.logo_url} alt="Company Logo" width="80" />
+            ) : (
+              <div className="w-20 h-20 border border-dashed flex items-center justify-center">
+                <span className="text-xs text-gray-400">No Logo</span>
+              </div>
+            )}
           </div>
           <div className="company-details">
-            <h2 className="text-lg font-bold mb-0">Marzelet Info Technology</h2>
-            <p className="text-sm mb-0">Ground floor Old no.33, New No 10 Andavar Street, Sivashakthi Nagar</p>
-            <p className="text-sm mb-0">Chennai</p>
-            <p className="text-sm mb-0">Phone no.: 9629997391 Email: admin@marzelet.info</p>
-            <p className="text-sm mb-0">GSTIN: 33AASCSM2238G1ZJ, State: 33-Tamil Nadu</p>
+            <h2 className="text-lg font-bold mb-0">{companyData.company_name}</h2>
+            <p className="text-sm mb-0">{companyData.address}</p>
+            <p className="text-sm mb-0">Phone no.: {companyData.phone} Email: {companyData.email}</p>
+            <p className="text-sm mb-0">GSTIN: {companyData.gstin}, State: {companyData.state}</p>
           </div>
         </div>
         
@@ -149,13 +196,13 @@ const BillPrintPreview: React.FC<BillPrintPreviewProps> = ({
             <p className="text-sm">{email?.split('@')[0] || 'Customer'}</p>
             <p className="text-sm">Contact No.: N/A</p>
             <p className="text-sm">GSTIN: N/A</p>
-            <p className="text-sm">State: 33-Tamil Nadu</p>
+            <p className="text-sm">State: {companyData.state?.split('-')[1] || 'Tamil Nadu'}</p>
           </div>
           <div className="invoice-details w-1/2 text-right">
             <h3 className="font-bold text-base">Invoice Details</h3>
             <p className="text-sm">Invoice No.: {billNumber}</p>
             <p className="text-sm">Date: {currentDate}</p>
-            <p className="text-sm">Place of supply: 33-Tamil Nadu</p>
+            <p className="text-sm">Place of supply: {companyData.state || '33-Tamil Nadu'}</p>
           </div>
         </div>
         
@@ -228,22 +275,29 @@ const BillPrintPreview: React.FC<BillPrintPreviewProps> = ({
         <div className="bank-details mt-6">
           <div className="section-header bg-blue-500 text-white px-2 py-1">Bank Details</div>
           <div className="p-2 border border-gray-300">
-            <p className="text-sm mb-1">Name: INDIAN OVERSEAS BANK, CHENNAI, AVADI</p>
-            <p className="text-sm mb-1">Account No.: 00080200000163</p>
-            <p className="text-sm mb-1">IFSC code: IOBA0000008</p>
-            <p className="text-sm mb-1">Account holder's name: Marzelet Info Technology Pvt Ltd</p>
+            <p className="text-sm mb-1">Name: {companyData.bank_name}</p>
+            <p className="text-sm mb-1">Account No.: {companyData.account_number}</p>
+            <p className="text-sm mb-1">IFSC code: {companyData.ifsc_code}</p>
+            <p className="text-sm mb-1">Account holder's name: {companyData.account_holder_name}</p>
           </div>
         </div>
         
         {/* Signature */}
         <div className="footer mt-6 flex justify-between">
           <div className="w-1/2">
-            <p>For: Marzelet Info Technology</p>
+            <p>For: {companyData.company_name}</p>
           </div>
           <div className="w-1/2 text-right">
-            <div className="mt-12">
-              <p>Authorized Signatory</p>
+            <div className="mt-8 flex justify-end">
+              {companyData.signature_url ? (
+                <img 
+                  src={companyData.signature_url} 
+                  alt="Authorized Signature" 
+                  className="signature-image"
+                />
+              ) : null}
             </div>
+            <p>Authorized Signatory</p>
           </div>
         </div>
       </div>

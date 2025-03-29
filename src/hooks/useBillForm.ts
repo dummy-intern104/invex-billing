@@ -1,3 +1,4 @@
+
 import { useState, useEffect } from "react";
 import { BillItem, Product } from "@/types/billing";
 import { supabase } from "@/integrations/supabase/client";
@@ -98,17 +99,19 @@ export const useBillForm = ({ onSubmit }: UseBillFormProps) => {
     
     if (status === 'paid') {
       handleSubmit();
-    } else {
+    } else if (status === 'cancelled') {
+      // Reset form without saving
       toast({
         title: "Bill cancelled",
         description: "The bill has been cancelled",
-        variant: "destructive",
       });
+      
       // Reset form
       setBillNumber(generateBillNumber());
       setEmail("");
       setItems([{ product_id: "", product_name: "", quantity: 0, price: 0 }]);
       setPaymentStatus('pending');
+      setShowPrintPreview(false);
     }
   };
 

@@ -48,7 +48,10 @@ const BillActions: React.FC<BillActionsProps> = ({
       </Button>
       
       <Button 
-        onClick={() => onPaymentStatus('cancelled')} 
+        onClick={() => {
+          // Direct call to onPaymentStatus with cancelled status
+          onPaymentStatus('cancelled');
+        }} 
         variant="outline"
         className="border-red-300 text-red-700 hover:bg-red-50"
         disabled={isLoading}

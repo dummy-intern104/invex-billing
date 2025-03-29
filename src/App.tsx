@@ -10,6 +10,7 @@ import Index from "./pages/Index";
 import NotFound from "./pages/NotFound";
 import Billing from "./pages/Billing";
 import Dashboard from "./pages/Dashboard";
+import CompanyProfile from "./pages/CompanyProfile";
 import { useAuth } from "@/context/AuthContext";
 
 // Protected route component
@@ -41,6 +42,14 @@ const AppRoutes = () => {
         element={
           <ProtectedRoute>
             <Dashboard />
+          </ProtectedRoute>
+        } 
+      />
+      <Route 
+        path="/company-profile" 
+        element={
+          <ProtectedRoute>
+            <CompanyProfile />
           </ProtectedRoute>
         } 
       />
