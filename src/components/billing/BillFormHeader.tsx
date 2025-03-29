@@ -22,6 +22,9 @@ const BillFormHeader: React.FC<BillFormHeaderProps> = ({
         placeholder="Enter invoice number" 
         className="border-gray-300 focus-visible:ring-purple-400"
       />
+      <div className="text-xs text-gray-500">
+        <p>This number will appear on the printed invoice. Auto-generated as "INV-XXXXXX".</p>
+      </div>
     </div>
   );
 };
