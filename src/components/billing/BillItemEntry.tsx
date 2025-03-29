@@ -1,5 +1,5 @@
 
-import React, { useEffect } from "react";
+import React from "react";
 import { Input } from "@/components/ui/input";
 import { BillItem, Product } from "@/types/billing";
 
@@ -16,16 +16,9 @@ const BillItemEntry: React.FC<BillItemEntryProps> = ({
   products, 
   onItemChange 
 }) => {
-  // When manual entry is selected, clear product_id and enable manual name entry
-  useEffect(() => {
-    if (item.product_id === "manual") {
-      // Only set product_name to empty if it's not already filled in
-      if (!item.product_name) {
-        onItemChange(index, 'product_name', '');
-      }
-    }
-  }, [item.product_id, index, onItemChange, item.product_name]);
-
+  const isManualEntry = item.product_id === "manual";
+  const isProductSelected = item.product_id !== "" && !isManualEntry;
+  
   return (
     <div className="grid grid-cols-12 gap-3">
       <div className="col-span-3">
@@ -50,7 +43,7 @@ const BillItemEntry: React.FC<BillItemEntryProps> = ({
           value={item.product_name}
           onChange={(e) => onItemChange(index, 'product_name', e.target.value)}
           className="border-gray-300 focus-visible:ring-purple-400"
-          disabled={item.product_id !== "" && item.product_id !== "manual"}
+          disabled={isProductSelected}
         />
       </div>
       <div className="col-span-2">
@@ -72,7 +65,7 @@ const BillItemEntry: React.FC<BillItemEntryProps> = ({
           value={item.price || ""}
           onChange={(e) => onItemChange(index, 'price', e.target.value)}
           className="border-gray-300 focus-visible:ring-purple-400"
-          disabled={item.product_id !== "" && item.product_id !== "manual"}
+          disabled={isProductSelected}
         />
       </div>
     </div>

@@ -1,11 +1,11 @@
 
 import React from "react";
-import { Input } from "@/components/ui/input";
-import { Label } from "@/components/ui/label";
 import { Button } from "@/components/ui/button";
 import { BillItem, Product } from "@/types/billing";
 import { Printer } from "lucide-react";
-import BillItemEntry from "./BillItemEntry";
+import BillFormHeader from "./BillFormHeader";
+import BillItemsList from "./BillItemsList";
+import BillCustomerInfo from "./BillCustomerInfo";
 import BillSummary from "./BillSummary";
 
 interface BillFormInputProps {
@@ -39,50 +39,23 @@ const BillFormInput: React.FC<BillFormInputProps> = ({
 }) => {
   return (
     <form onSubmit={onSubmit} className="space-y-6">
-      <div className="space-y-3">
-        <Label htmlFor="bill" className="text-gray-700 dark:text-gray-200 font-medium">Invoice Number</Label>
-        <Input 
-          id="bill" 
-          value={billNumber}
-          onChange={(e) => onBillNumberChange(e.target.value)}
-          placeholder="Enter invoice number" 
-          className="border-gray-300 focus-visible:ring-purple-400"
-        />
-      </div>
+      <BillFormHeader 
+        billNumber={billNumber} 
+        onBillNumberChange={onBillNumberChange} 
+      />
       
-      <div className="space-y-4">
-        <h3 className="font-medium text-gray-700 dark:text-gray-200">Item Entry</h3>
-        {items.map((item, index) => (
-          <BillItemEntry 
-            key={index} 
-            item={item} 
-            index={index} 
-            products={products} 
-            onItemChange={onItemChange} 
-          />
-        ))}
-        
-        <Button 
-          type="button" 
-          variant="outline" 
-          onClick={addNewItem}
-          className="w-full border-dashed border-gray-300 hover:border-purple-400 hover:bg-purple-50 dark:hover:bg-purple-900/20"
-        >
-          + Add Item
-        </Button>
-      </div>
+      <BillItemsList 
+        items={items} 
+        products={products} 
+        onItemChange={onItemChange} 
+        addNewItem={addNewItem} 
+      />
       
       <div className="grid grid-cols-12 gap-3 items-end">
         <div className="col-span-8">
-          <Label htmlFor="email" className="text-gray-700 dark:text-gray-200 font-medium mb-2 block">
-            Customer Email/Number
-          </Label>
-          <Input 
-            id="email" 
-            placeholder="customer@example.com" 
-            value={email}
-            onChange={(e) => onEmailChange(e.target.value)}
-            className="border-gray-300 focus-visible:ring-purple-400"
+          <BillCustomerInfo 
+            email={email}
+            onEmailChange={onEmailChange}
           />
         </div>
         <div className="col-span-4">
