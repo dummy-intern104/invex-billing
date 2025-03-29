@@ -107,6 +107,60 @@ export type Database = {
         }
         Relationships: []
       }
+      company_profiles: {
+        Row: {
+          account_holder_name: string
+          account_number: string
+          address: string
+          bank_name: string
+          company_name: string
+          created_at: string
+          email: string
+          gstin: string
+          id: string
+          ifsc_code: string
+          logo_url: string | null
+          phone: string
+          signature_url: string | null
+          state: string
+          updated_at: string
+        }
+        Insert: {
+          account_holder_name?: string
+          account_number?: string
+          address?: string
+          bank_name?: string
+          company_name?: string
+          created_at?: string
+          email?: string
+          gstin?: string
+          id?: string
+          ifsc_code?: string
+          logo_url?: string | null
+          phone?: string
+          signature_url?: string | null
+          state?: string
+          updated_at?: string
+        }
+        Update: {
+          account_holder_name?: string
+          account_number?: string
+          address?: string
+          bank_name?: string
+          company_name?: string
+          created_at?: string
+          email?: string
+          gstin?: string
+          id?: string
+          ifsc_code?: string
+          logo_url?: string | null
+          phone?: string
+          signature_url?: string | null
+          state?: string
+          updated_at?: string
+        }
+        Relationships: []
+      }
       products: {
         Row: {
           created_at: string

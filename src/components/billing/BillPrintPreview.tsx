@@ -1,4 +1,3 @@
-
 import React, { useRef, useEffect, useState } from "react";
 import { BillItem } from "@/types/billing";
 import BillActions from "./BillActions";
@@ -24,7 +23,7 @@ interface BillPrintPreviewProps {
 }
 
 const defaultCompanyProfile: CompanyProfile = {
-  logo_url: "/lovable-uploads/9a0a0524-de7e-4a38-b67e-39f84a4e4984.png",
+  logo_url: "",
   signature_url: "",
   company_name: "Marzelet Info Technology",
   address: "Ground floor Old no.33, New No 10 Andavar Street, Sivashakthi Nagar, Chennai",
@@ -62,7 +61,6 @@ const BillPrintPreview: React.FC<BillPrintPreviewProps> = ({
     }
   }, [profile]);
   
-  // Function to convert number to words
   const numberToWords = (num: number) => {
     const units = ["", "One", "Two", "Three", "Four", "Five", "Six", "Seven", "Eight", "Nine", "Ten"];
     const teens = ["", "Eleven", "Twelve", "Thirteen", "Fourteen", "Fifteen", "Sixteen", "Seventeen", "Eighteen", "Nineteen"];
@@ -140,7 +138,6 @@ const BillPrintPreview: React.FC<BillPrintPreviewProps> = ({
       printWindow.document.close();
       printWindow.focus();
       
-      // Print after a small delay to ensure content is fully loaded
       setTimeout(() => {
         printWindow.print();
         printWindow.close();
@@ -163,7 +160,6 @@ const BillPrintPreview: React.FC<BillPrintPreviewProps> = ({
       </div>
       
       <div ref={printRef} className="invoice-container">
-        {/* Company Header */}
         <div className="header">
           <div className="logo">
             {companyData.logo_url ? (
@@ -188,7 +184,6 @@ const BillPrintPreview: React.FC<BillPrintPreviewProps> = ({
           <h2 className="text-center text-xl font-bold">Tax Invoice</h2>
         </div>
         
-        {/* Bill To and Invoice Details */}
         <div className="bill-sections flex justify-between">
           <div className="bill-to w-1/2">
             <h3 className="font-bold text-base">Bill To</h3>
@@ -206,7 +201,6 @@ const BillPrintPreview: React.FC<BillPrintPreviewProps> = ({
           </div>
         </div>
         
-        {/* Items Table */}
         <Table className="mt-6">
           <TableHeader>
             <TableRow>
@@ -234,7 +228,6 @@ const BillPrintPreview: React.FC<BillPrintPreviewProps> = ({
           </TableBody>
         </Table>
         
-        {/* Amount in Words and Calculation */}
         <div className="amount-section flex justify-between mt-6">
           <div className="amount-words w-3/5">
             <div className="section-header bg-blue-500 text-white px-2 py-1">Invoice Amount (In Words)</div>
@@ -265,13 +258,11 @@ const BillPrintPreview: React.FC<BillPrintPreviewProps> = ({
           </div>
         </div>
         
-        {/* Terms and Conditions */}
         <div className="terms mt-6">
           <div className="section-header bg-blue-500 text-white px-2 py-1">Terms and Conditions</div>
           <p className="p-2 border border-gray-300">Thanks for doing business with us!</p>
         </div>
         
-        {/* Bank Details */}
         <div className="bank-details mt-6">
           <div className="section-header bg-blue-500 text-white px-2 py-1">Bank Details</div>
           <div className="p-2 border border-gray-300">
@@ -282,7 +273,6 @@ const BillPrintPreview: React.FC<BillPrintPreviewProps> = ({
           </div>
         </div>
         
-        {/* Signature */}
         <div className="footer mt-6 flex justify-between">
           <div className="w-1/2">
             <p>For: {companyData.company_name}</p>

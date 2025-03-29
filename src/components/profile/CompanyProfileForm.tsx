@@ -56,11 +56,12 @@ const CompanyProfileForm: React.FC = () => {
 
   const fetchCompanyProfile = async () => {
     try {
-      const { data, error } = await supabase
-        .from('company_profiles')
+      // Use type assertion to bypass TypeScript type checking for the table name
+      const { data, error } = await (supabase
+        .from('company_profiles' as any)
         .select('*')
         .limit(1)
-        .single();
+        .single());
 
       if (error && error.code !== 'PGRST116') {
         console.error('Error fetching company profile:', error);
@@ -68,7 +69,7 @@ const CompanyProfileForm: React.FC = () => {
       }
 
       if (data) {
-        setProfile(data as CompanyProfile);
+        setProfile(data as unknown as CompanyProfile);
       }
     } catch (error) {
       console.error('Error in fetch operation:', error);
@@ -134,9 +135,10 @@ const CompanyProfileForm: React.FC = () => {
     setIsLoading(true);
 
     try {
-      const { error } = await supabase
-        .from('company_profiles')
-        .upsert(profile, { onConflict: 'id' });
+      // Use type assertion to bypass TypeScript type checking for the table name
+      const { error } = await (supabase
+        .from('company_profiles' as any)
+        .upsert(profile, { onConflict: 'id' }));
 
       if (error) throw error;
 

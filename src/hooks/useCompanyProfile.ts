@@ -15,11 +15,13 @@ export const useCompanyProfile = () => {
   const fetchCompanyProfile = async () => {
     try {
       setLoading(true);
-      const { data, error } = await supabase
-        .from('company_profiles')
+      // Use the "any" type assertion to bypass TypeScript's type checking for the table name
+      // This is needed because the Supabase types don't include the company_profiles table yet
+      const { data, error } = await (supabase
+        .from('company_profiles' as any)
         .select('*')
         .limit(1)
-        .single();
+        .single());
 
       if (error) {
         if (error.code === 'PGRST116') {
@@ -29,7 +31,8 @@ export const useCompanyProfile = () => {
           throw error;
         }
       } else {
-        setProfile(data as CompanyProfile);
+        // Use type assertion to safely convert the data to CompanyProfile
+        setProfile(data as unknown as CompanyProfile);
       }
     } catch (error) {
       console.error('Error fetching company profile:', error);
