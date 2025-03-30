@@ -4,6 +4,7 @@ import { Card, CardContent } from "@/components/ui/card";
 import { Receipt, Loader2 } from "lucide-react";
 import { BillHistoryItem } from "@/types/billing";
 import { supabase } from "@/integrations/supabase/client";
+import { useAuth } from "@/context/AuthContext";
 
 interface BillHistoryProps {
   billHistory: BillHistoryItem[];
@@ -12,14 +13,20 @@ interface BillHistoryProps {
 const BillHistory: React.FC<BillHistoryProps> = ({ billHistory: initialBillHistory }) => {
   const [billHistory, setBillHistory] = useState<BillHistoryItem[]>(initialBillHistory);
   const [isLoading, setIsLoading] = useState(true);
+  const { user } = useAuth();
 
   useEffect(() => {
-    // Fetch bill history from Supabase
+    // Only proceed if we have a user
+    if (!user) return;
+    
+    // Fetch bill history from Supabase filtered by current user's email
     const fetchBillHistory = async () => {
       try {
+        setIsLoading(true);
         const { data, error } = await supabase
           .from('bills')
           .select('*')
+          .eq('customer_email', user.email)
           .order('created_at', { ascending: false });
           
         if (error) throw error;
@@ -33,7 +40,7 @@ const BillHistory: React.FC<BillHistoryProps> = ({ billHistory: initialBillHisto
 
     fetchBillHistory();
 
-    // Subscribe to realtime changes
+    // Subscribe to realtime changes, but only for the current user's bills
     const channel = supabase
       .channel('schema-db-changes')
       .on(
@@ -41,7 +48,8 @@ const BillHistory: React.FC<BillHistoryProps> = ({ billHistory: initialBillHisto
         {
           event: 'INSERT',
           schema: 'public',
-          table: 'bills'
+          table: 'bills',
+          filter: `customer_email=eq.${user.email}`
         },
         (payload) => {
           const newBill = payload.new as BillHistoryItem;
@@ -53,7 +61,7 @@ const BillHistory: React.FC<BillHistoryProps> = ({ billHistory: initialBillHisto
     return () => {
       supabase.removeChannel(channel);
     };
-  }, []);
+  }, [user]);
 
   return (
     <Card className="bg-white/90 backdrop-blur-sm border-purple-100 dark:bg-black/40 dark:border-purple-900/30 shadow-lg">
