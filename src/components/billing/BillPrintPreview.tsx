@@ -1,3 +1,4 @@
+
 import React, { useRef, useEffect, useState } from "react";
 import { BillItem } from "@/types/billing";
 import BillActions from "./BillActions";
@@ -34,7 +35,8 @@ const defaultCompanyProfile: CompanyProfile = {
   bank_name: "INDIAN OVERSEAS BANK, CHENNAI, AVADI",
   account_number: "00080200000163",
   ifsc_code: "IOBA0000008",
-  account_holder_name: "Marzelet Info Technology Pvt Ltd"
+  account_holder_name: "Marzelet Info Technology Pvt Ltd",
+  user_id: ""
 };
 
 const BillPrintPreview: React.FC<BillPrintPreviewProps> = ({

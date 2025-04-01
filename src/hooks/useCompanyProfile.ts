@@ -21,10 +21,8 @@ export const useCompanyProfile = () => {
     
     try {
       setLoading(true);
-      // Use the "any" type assertion to bypass TypeScript's type checking for the table name
-      // This is needed because the Supabase types don't include the company_profiles table yet
       const { data, error } = await (supabase
-        .from('company_profiles' as any)
+        .from('company_profiles')
         .select('*')
         .eq('user_id', user.id)
         .limit(1)
@@ -50,22 +48,21 @@ export const useCompanyProfile = () => {
           user_id: user.id
         };
         
-        const { error: insertError } = await (supabase
-          .from('company_profiles' as any)
-          .insert(defaultProfile));
+        const { error: insertError } = await supabase
+          .from('company_profiles')
+          .insert(defaultProfile);
           
         if (insertError) {
           throw insertError;
         }
         
-        setProfile(defaultProfile as unknown as CompanyProfile);
+        setProfile(defaultProfile as CompanyProfile);
       } else {
-        // Use type assertion to safely convert the data to CompanyProfile
-        setProfile(data as unknown as CompanyProfile);
+        setProfile(data as CompanyProfile);
       }
-    } catch (error) {
-      console.error('Error fetching company profile:', error);
-      setError(error as Error);
+    } catch (err) {
+      console.error('Error fetching company profile:', err);
+      setError(err as Error);
     } finally {
       setLoading(false);
     }
@@ -77,10 +74,10 @@ export const useCompanyProfile = () => {
     try {
       setLoading(true);
       
-      const { error } = await (supabase
-        .from('company_profiles' as any)
+      const { error } = await supabase
+        .from('company_profiles')
         .update(updatedProfile)
-        .eq('user_id', user.id));
+        .eq('user_id', user.id);
         
       if (error) throw error;
       
@@ -88,10 +85,10 @@ export const useCompanyProfile = () => {
       await fetchCompanyProfile();
       
       return { success: true };
-    } catch (error) {
-      console.error('Error updating company profile:', error);
-      setError(error as Error);
-      return { success: false, error };
+    } catch (err) {
+      console.error('Error updating company profile:', err);
+      setError(err as Error);
+      return { success: false, error: err };
     } finally {
       setLoading(false);
     }

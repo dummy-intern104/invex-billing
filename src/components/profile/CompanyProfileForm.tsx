@@ -1,3 +1,4 @@
+
 import React, { useState, useEffect, useRef } from "react";
 import { useToast } from "@/hooks/use-toast";
 import { Button } from "@/components/ui/button";
@@ -71,6 +72,7 @@ const CompanyProfileForm: React.FC = () => {
 
     const file = e.target.files[0];
     const fileExt = file.name.split('.').pop();
+    // Add user ID to file name to avoid collisions
     const fileName = `${user.id}_${type}_${Date.now()}.${fileExt}`;
     const filePath = `${fileName}`;
 
