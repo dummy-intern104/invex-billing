@@ -1,4 +1,3 @@
-
 import React, { useRef, useEffect, useState } from "react";
 import { BillItem } from "@/types/billing";
 import BillActions from "./BillActions";
@@ -6,10 +5,18 @@ import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@
 import { Separator } from "@/components/ui/separator";
 import { format } from "date-fns";
 import { useCompanyProfile } from "@/hooks/useCompanyProfile";
-import { CompanyProfile } from "@/components/profile/CompanyProfileForm";
+import { CompanyProfile } from "@/types/company";
 import { useNavigate } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { Settings } from "lucide-react";
+import BillPrintHeader from "./print/BillPrintHeader";
+import BillPrintTitle from "./print/BillPrintTitle";
+import BillPrintCustomerInfo from "./print/BillPrintCustomerInfo";
+import BillPrintItemsTable from "./print/BillPrintItemsTable";
+import BillPrintAmountSection from "./print/BillPrintAmountSection";
+import BillPrintTerms from "./print/BillPrintTerms";
+import BillPrintBankDetails from "./print/BillPrintBankDetails";
+import BillPrintFooter from "./print/BillPrintFooter";
 
 interface BillPrintPreviewProps {
   billNumber: string;
@@ -162,136 +169,35 @@ const BillPrintPreview: React.FC<BillPrintPreviewProps> = ({
       </div>
       
       <div ref={printRef} className="invoice-container">
-        <div className="header">
-          <div className="logo">
-            {companyData.logo_url ? (
-              <img src={companyData.logo_url} alt="Company Logo" width="80" />
-            ) : (
-              <div className="w-20 h-20 border border-dashed flex items-center justify-center">
-                <span className="text-xs text-gray-400">No Logo</span>
-              </div>
-            )}
-          </div>
-          <div className="company-details">
-            <h2 className="text-lg font-bold mb-0">{companyData.company_name}</h2>
-            <p className="text-sm mb-0">{companyData.address}</p>
-            <p className="text-sm mb-0">Phone no.: {companyData.phone} Email: {companyData.email}</p>
-            <p className="text-sm mb-0">GSTIN: {companyData.gstin}, State: {companyData.state}</p>
-          </div>
-        </div>
+        <BillPrintHeader companyData={companyData} />
         
         <Separator className="my-4 border-black" />
         
-        <div className="invoice-title">
-          <h2 className="text-center text-xl font-bold">Tax Invoice</h2>
-        </div>
+        <BillPrintTitle />
         
-        <div className="bill-sections flex justify-between">
-          <div className="bill-to w-1/2">
-            <h3 className="font-bold text-base">Bill To</h3>
-            <p className="font-semibold">{email}</p>
-            <p className="text-sm">{email?.split('@')[0] || 'Customer'}</p>
-            <p className="text-sm">Contact No.: N/A</p>
-            <p className="text-sm">GSTIN: N/A</p>
-            <p className="text-sm">State: {companyData.state?.split('-')[1] || 'Tamil Nadu'}</p>
-          </div>
-          <div className="invoice-details w-1/2 text-right">
-            <h3 className="font-bold text-base">Invoice Details</h3>
-            <p className="text-sm">Invoice No.: {billNumber}</p>
-            <p className="text-sm">Date: {currentDate}</p>
-            <p className="text-sm">Place of supply: {companyData.state || '33-Tamil Nadu'}</p>
-          </div>
-        </div>
+        <BillPrintCustomerInfo 
+          email={email} 
+          state={companyData.state} 
+          billNumber={billNumber} 
+          currentDate={currentDate} 
+        />
         
-        <Table className="mt-6">
-          <TableHeader>
-            <TableRow>
-              <TableHead className="w-12 bg-blue-500 text-white">#</TableHead>
-              <TableHead className="bg-blue-500 text-white">Item name</TableHead>
-              <TableHead className="bg-blue-500 text-white text-right">Quantity</TableHead>
-              <TableHead className="bg-blue-500 text-white text-right">Price/Unit</TableHead>
-              <TableHead className="bg-blue-500 text-white text-right">Amount</TableHead>
-            </TableRow>
-          </TableHeader>
-          <TableBody>
-            {validItems.map((item, index) => (
-              <TableRow key={index} className="border">
-                <TableCell className="border">{index + 1}</TableCell>
-                <TableCell className="border">{item.product_name}</TableCell>
-                <TableCell className="border text-right">{item.quantity}</TableCell>
-                <TableCell className="border text-right">₹ {item.price.toFixed(2)}</TableCell>
-                <TableCell className="border text-right">₹ {(item.quantity * item.price).toFixed(2)}</TableCell>
-              </TableRow>
-            ))}
-            <TableRow>
-              <TableCell colSpan={4} className="text-right font-bold border">Total</TableCell>
-              <TableCell className="text-right font-bold border">₹ {calculateSubtotal().toFixed(2)}</TableCell>
-            </TableRow>
-          </TableBody>
-        </Table>
+        <BillPrintItemsTable 
+          items={validItems} 
+          calculateSubtotal={calculateSubtotal} 
+        />
         
-        <div className="amount-section flex justify-between mt-6">
-          <div className="amount-words w-3/5">
-            <div className="section-header bg-blue-500 text-white px-2 py-1">Invoice Amount (In Words)</div>
-            <p className="p-2 border border-gray-300">{totalInWords}</p>
-          </div>
-          <div className="amount-table w-2/5">
-            <div className="section-header bg-blue-500 text-white px-2 py-1">Amount</div>
-            <table className="w-full border-collapse">
-              <tbody>
-                <tr>
-                  <td className="border border-gray-300 p-1">Sub Total</td>
-                  <td className="border border-gray-300 p-1 text-right">₹ {calculateSubtotal().toFixed(2)}</td>
-                </tr>
-                <tr>
-                  <td className="border border-gray-300 p-1">Total</td>
-                  <td className="border border-gray-300 p-1 text-right">₹ {calculateTotal().toFixed(2)}</td>
-                </tr>
-                <tr>
-                  <td className="border border-gray-300 p-1">Received</td>
-                  <td className="border border-gray-300 p-1 text-right">₹ {calculateTotal().toFixed(2)}</td>
-                </tr>
-                <tr>
-                  <td className="border border-gray-300 p-1">Balance</td>
-                  <td className="border border-gray-300 p-1 text-right">₹ 0.00</td>
-                </tr>
-              </tbody>
-            </table>
-          </div>
-        </div>
+        <BillPrintAmountSection
+          totalInWords={totalInWords}
+          calculateSubtotal={calculateSubtotal}
+          calculateTotal={calculateTotal}
+        />
         
-        <div className="terms mt-6">
-          <div className="section-header bg-blue-500 text-white px-2 py-1">Terms and Conditions</div>
-          <p className="p-2 border border-gray-300">Thanks for doing business with us!</p>
-        </div>
+        <BillPrintTerms />
         
-        <div className="bank-details mt-6">
-          <div className="section-header bg-blue-500 text-white px-2 py-1">Bank Details</div>
-          <div className="p-2 border border-gray-300">
-            <p className="text-sm mb-1">Name: {companyData.bank_name}</p>
-            <p className="text-sm mb-1">Account No.: {companyData.account_number}</p>
-            <p className="text-sm mb-1">IFSC code: {companyData.ifsc_code}</p>
-            <p className="text-sm mb-1">Account holder's name: {companyData.account_holder_name}</p>
-          </div>
-        </div>
+        <BillPrintBankDetails companyData={companyData} />
         
-        <div className="footer mt-6 flex justify-between">
-          <div className="w-1/2">
-            <p>For: {companyData.company_name}</p>
-          </div>
-          <div className="w-1/2 text-right">
-            <div className="mt-8 flex justify-end">
-              {companyData.signature_url ? (
-                <img 
-                  src={companyData.signature_url} 
-                  alt="Authorized Signature" 
-                  className="signature-image"
-                />
-              ) : null}
-            </div>
-            <p>Authorized Signatory</p>
-          </div>
-        </div>
+        <BillPrintFooter companyData={companyData} />
       </div>
       
       <BillActions
