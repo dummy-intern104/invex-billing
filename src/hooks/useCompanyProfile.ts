@@ -1,7 +1,7 @@
 
 import { useState, useEffect } from "react";
 import { supabase } from "@/integrations/supabase/client";
-import { CompanyProfile } from "@/components/profile/CompanyProfileForm";
+import { CompanyProfile } from "@/types/company";
 import { useAuth } from "@/context/AuthContext";
 
 export const useCompanyProfile = () => {
@@ -21,12 +21,12 @@ export const useCompanyProfile = () => {
     
     try {
       setLoading(true);
-      const { data, error } = await (supabase
+      const { data, error } = await supabase
         .from('company_profiles')
         .select('*')
         .eq('user_id', user.id)
         .limit(1)
-        .maybeSingle());
+        .maybeSingle();
 
       if (error) throw error;
       
@@ -69,7 +69,7 @@ export const useCompanyProfile = () => {
   };
 
   const updateProfile = async (updatedProfile: Partial<CompanyProfile>) => {
-    if (!user) return;
+    if (!user) return { success: false, error: new Error("User not authenticated") };
     
     try {
       setLoading(true);
