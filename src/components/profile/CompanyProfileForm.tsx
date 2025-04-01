@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect, useRef } from "react";
 import { useToast } from "@/hooks/use-toast";
 import { Button } from "@/components/ui/button";
@@ -9,6 +8,7 @@ import { Textarea } from "@/components/ui/textarea";
 import { supabase } from "@/integrations/supabase/client";
 import { Edit2, Upload, X } from "lucide-react";
 import { useAuth } from "@/context/AuthContext";
+import { useCompanyProfile } from "@/hooks/useCompanyProfile";
 
 export interface CompanyProfile {
   logo_url: string;
@@ -23,6 +23,7 @@ export interface CompanyProfile {
   account_number: string;
   ifsc_code: string;
   account_holder_name: string;
+  user_id?: string;
 }
 
 const initialCompanyProfile: CompanyProfile = {
@@ -44,54 +45,33 @@ const CompanyProfileForm: React.FC = () => {
   const { user } = useAuth();
   const { toast } = useToast();
   const [isLoading, setIsLoading] = useState<boolean>(false);
-  const [profile, setProfile] = useState<CompanyProfile>(initialCompanyProfile);
+  const [formData, setFormData] = useState<CompanyProfile>(initialCompanyProfile);
   const logoInputRef = useRef<HTMLInputElement>(null);
   const signatureInputRef = useRef<HTMLInputElement>(null);
+  const { profile, loading, updateProfile } = useCompanyProfile();
 
   useEffect(() => {
-    if (user) {
-      fetchCompanyProfile();
+    if (profile) {
+      setFormData(profile);
     }
-  }, [user]);
-
-  const fetchCompanyProfile = async () => {
-    try {
-      // Use type assertion to bypass TypeScript type checking for the table name
-      const { data, error } = await (supabase
-        .from('company_profiles' as any)
-        .select('*')
-        .limit(1)
-        .single());
-
-      if (error && error.code !== 'PGRST116') {
-        console.error('Error fetching company profile:', error);
-        return;
-      }
-
-      if (data) {
-        setProfile(data as unknown as CompanyProfile);
-      }
-    } catch (error) {
-      console.error('Error in fetch operation:', error);
-    }
-  };
+  }, [profile]);
 
   const handleInputChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
     const { name, value } = e.target;
-    setProfile(prev => ({ ...prev, [name]: value }));
+    setFormData(prev => ({ ...prev, [name]: value }));
   };
 
   const handleFileUpload = async (
     e: React.ChangeEvent<HTMLInputElement>,
     type: 'logo' | 'signature'
   ) => {
-    if (!e.target.files || e.target.files.length === 0) {
+    if (!e.target.files || e.target.files.length === 0 || !user) {
       return;
     }
 
     const file = e.target.files[0];
     const fileExt = file.name.split('.').pop();
-    const fileName = `${type}_${Date.now()}.${fileExt}`;
+    const fileName = `${user.id}_${type}_${Date.now()}.${fileExt}`;
     const filePath = `${fileName}`;
 
     setIsLoading(true);
@@ -109,7 +89,7 @@ const CompanyProfileForm: React.FC = () => {
         .from('company_assets')
         .getPublicUrl(filePath);
 
-      setProfile(prev => ({
+      setFormData(prev => ({
         ...prev,
         [type === 'logo' ? 'logo_url' : 'signature_url']: urlData.publicUrl
       }));
@@ -135,12 +115,9 @@ const CompanyProfileForm: React.FC = () => {
     setIsLoading(true);
 
     try {
-      // Use type assertion to bypass TypeScript type checking for the table name
-      const { error } = await (supabase
-        .from('company_profiles' as any)
-        .upsert(profile, { onConflict: 'id' }));
-
-      if (error) throw error;
+      const result = await updateProfile(formData);
+      
+      if (!result.success) throw new Error("Failed to update profile");
 
       toast({
         title: 'Profile saved',
@@ -159,11 +136,19 @@ const CompanyProfileForm: React.FC = () => {
   };
 
   const handleRemoveImage = async (type: 'logo' | 'signature') => {
-    setProfile(prev => ({
+    setFormData(prev => ({
       ...prev,
       [type === 'logo' ? 'logo_url' : 'signature_url']: ''
     }));
   };
+
+  if (loading) {
+    return (
+      <div className="flex justify-center py-8">
+        <div className="animate-spin h-8 w-8 border-4 border-purple-500 rounded-full border-t-transparent"></div>
+      </div>
+    );
+  }
 
   return (
     <form onSubmit={handleSubmit} className="space-y-6">
@@ -172,10 +157,10 @@ const CompanyProfileForm: React.FC = () => {
         <div className="space-y-3">
           <Label className="text-gray-700 dark:text-gray-200 font-medium">Company Logo</Label>
           <div className="flex items-center gap-4">
-            {profile.logo_url ? (
+            {formData.logo_url ? (
               <div className="relative w-24 h-24 border rounded-md overflow-hidden group">
                 <img
-                  src={profile.logo_url}
+                  src={formData.logo_url}
                   alt="Company Logo"
                   className="w-full h-full object-contain"
                 />
@@ -206,7 +191,7 @@ const CompanyProfileForm: React.FC = () => {
               disabled={isLoading}
             >
               <Upload className="h-4 w-4" />
-              {profile.logo_url ? 'Change Logo' : 'Upload Logo'}
+              {formData.logo_url ? 'Change Logo' : 'Upload Logo'}
             </Button>
             <input
               ref={logoInputRef}
@@ -221,10 +206,10 @@ const CompanyProfileForm: React.FC = () => {
         <div className="space-y-3">
           <Label className="text-gray-700 dark:text-gray-200 font-medium">Signature</Label>
           <div className="flex items-center gap-4">
-            {profile.signature_url ? (
+            {formData.signature_url ? (
               <div className="relative w-24 h-24 border rounded-md overflow-hidden group">
                 <img
-                  src={profile.signature_url}
+                  src={formData.signature_url}
                   alt="Signature"
                   className="w-full h-full object-contain"
                 />
@@ -255,7 +240,7 @@ const CompanyProfileForm: React.FC = () => {
               disabled={isLoading}
             >
               <Edit2 className="h-4 w-4" />
-              {profile.signature_url ? 'Change Signature' : 'Upload Signature'}
+              {formData.signature_url ? 'Change Signature' : 'Upload Signature'}
             </Button>
             <input
               ref={signatureInputRef}
@@ -279,7 +264,7 @@ const CompanyProfileForm: React.FC = () => {
             <Input
               id="company_name"
               name="company_name"
-              value={profile.company_name}
+              value={formData.company_name}
               onChange={handleInputChange}
               className="border-gray-300 focus-visible:ring-purple-400"
             />
@@ -290,7 +275,7 @@ const CompanyProfileForm: React.FC = () => {
             <Input
               id="email"
               name="email"
-              value={profile.email}
+              value={formData.email}
               onChange={handleInputChange}
               className="border-gray-300 focus-visible:ring-purple-400"
             />
@@ -301,7 +286,7 @@ const CompanyProfileForm: React.FC = () => {
             <Input
               id="phone"
               name="phone"
-              value={profile.phone}
+              value={formData.phone}
               onChange={handleInputChange}
               className="border-gray-300 focus-visible:ring-purple-400"
             />
@@ -312,7 +297,7 @@ const CompanyProfileForm: React.FC = () => {
             <Input
               id="gstin"
               name="gstin"
-              value={profile.gstin}
+              value={formData.gstin}
               onChange={handleInputChange}
               className="border-gray-300 focus-visible:ring-purple-400"
             />
@@ -323,7 +308,7 @@ const CompanyProfileForm: React.FC = () => {
             <Input
               id="state"
               name="state"
-              value={profile.state}
+              value={formData.state}
               onChange={handleInputChange}
               className="border-gray-300 focus-visible:ring-purple-400"
             />
@@ -334,7 +319,7 @@ const CompanyProfileForm: React.FC = () => {
             <Textarea
               id="address"
               name="address"
-              value={profile.address}
+              value={formData.address}
               onChange={handleInputChange}
               rows={3}
               className="border-gray-300 focus-visible:ring-purple-400"
@@ -354,7 +339,7 @@ const CompanyProfileForm: React.FC = () => {
             <Input
               id="bank_name"
               name="bank_name"
-              value={profile.bank_name}
+              value={formData.bank_name}
               onChange={handleInputChange}
               className="border-gray-300 focus-visible:ring-purple-400"
             />
@@ -365,7 +350,7 @@ const CompanyProfileForm: React.FC = () => {
             <Input
               id="account_number"
               name="account_number"
-              value={profile.account_number}
+              value={formData.account_number}
               onChange={handleInputChange}
               className="border-gray-300 focus-visible:ring-purple-400"
             />
@@ -376,7 +361,7 @@ const CompanyProfileForm: React.FC = () => {
             <Input
               id="ifsc_code"
               name="ifsc_code"
-              value={profile.ifsc_code}
+              value={formData.ifsc_code}
               onChange={handleInputChange}
               className="border-gray-300 focus-visible:ring-purple-400"
             />
@@ -387,7 +372,7 @@ const CompanyProfileForm: React.FC = () => {
             <Input
               id="account_holder_name"
               name="account_holder_name"
-              value={profile.account_holder_name}
+              value={formData.account_holder_name}
               onChange={handleInputChange}
               className="border-gray-300 focus-visible:ring-purple-400"
             />
