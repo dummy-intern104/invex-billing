@@ -28,39 +28,37 @@ export const useCompanyProfile = () => {
         .select('*')
         .eq('user_id', user.id)
         .limit(1)
-        .single());
+        .maybeSingle());
 
-      if (error) {
-        if (error.code === 'PGRST116') {
-          // No rows returned, create a default profile for this user
-          const defaultProfile = {
-            company_name: "Marzelet Info Technology",
-            address: "Ground floor Old no.33, New No 10 Andavar Street, Sivashakthi Nagar, Chennai",
-            phone: "9629997391",
-            email: user.email || "admin@marzelet.info",
-            gstin: "33AASCSM2238G1ZJ",
-            state: "33-Tamil Nadu",
-            bank_name: "INDIAN OVERSEAS BANK, CHENNAI, AVADI",
-            account_number: "00080200000163",
-            ifsc_code: "IOBA0000008",
-            account_holder_name: "Marzelet Info Technology Pvt Ltd",
-            logo_url: "",
-            signature_url: "",
-            user_id: user.id
-          };
+      if (error) throw error;
+      
+      if (!data) {
+        // No profile found, create a default profile for this user
+        const defaultProfile = {
+          company_name: "Marzelet Info Technology",
+          address: "Ground floor Old no.33, New No 10 Andavar Street, Sivashakthi Nagar, Chennai",
+          phone: "9629997391",
+          email: user.email || "admin@marzelet.info",
+          gstin: "33AASCSM2238G1ZJ",
+          state: "33-Tamil Nadu",
+          bank_name: "INDIAN OVERSEAS BANK, CHENNAI, AVADI",
+          account_number: "00080200000163",
+          ifsc_code: "IOBA0000008",
+          account_holder_name: "Marzelet Info Technology Pvt Ltd",
+          logo_url: "",
+          signature_url: "",
+          user_id: user.id
+        };
+        
+        const { error: insertError } = await (supabase
+          .from('company_profiles' as any)
+          .insert(defaultProfile));
           
-          const { error: insertError } = await (supabase
-            .from('company_profiles' as any)
-            .insert(defaultProfile));
-            
-          if (insertError) {
-            throw insertError;
-          }
-          
-          setProfile(defaultProfile as unknown as CompanyProfile);
-        } else {
-          throw error;
+        if (insertError) {
+          throw insertError;
         }
+        
+        setProfile(defaultProfile as unknown as CompanyProfile);
       } else {
         // Use type assertion to safely convert the data to CompanyProfile
         setProfile(data as unknown as CompanyProfile);
