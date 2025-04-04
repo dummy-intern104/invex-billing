@@ -1,15 +1,15 @@
 
 import { useState, useEffect } from "react";
-import { BillItem, Product } from "@/types/billing";
+import { BillItem } from "@/types/billing";
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
 import {
-  calculateSubtotal,
-  calculateTax,
-  calculateTotal,
   generateBillNumber,
   validateBillForm
 } from "@/utils/billCalculations";
+import { useBillProduct } from "@/hooks/useBillProduct";
+import { useBillItems } from "@/hooks/useBillItems";
+import { useBillCalculation } from "@/hooks/useBillCalculation";
 
 interface UseBillFormProps {
   onSubmit: (billNumber: string, email: string, items: BillItem[], total: number) => void;
@@ -19,79 +19,28 @@ export const useBillForm = ({ onSubmit }: UseBillFormProps) => {
   const { toast } = useToast();
   const [billNumber, setBillNumber] = useState("");
   const [email, setEmail] = useState("");
-  const [items, setItems] = useState<BillItem[]>([
-    { product_id: "", product_name: "", quantity: 0, price: 0 }
-  ]);
   const [isLoading, setIsLoading] = useState(false);
-  const [products, setProducts] = useState<Product[]>([]);
   const [paymentStatus, setPaymentStatus] = useState<'pending' | 'paid' | 'cancelled'>('pending');
   const [showPrintPreview, setShowPrintPreview] = useState(false);
-
-  // Fetch available products
-  useEffect(() => {
-    const fetchProducts = async () => {
-      try {
-        const { data, error } = await supabase
-          .from('products')
-          .select('*');
-          
-        if (error) throw error;
-        if (data) setProducts(data);
-      } catch (error) {
-        console.error('Error fetching products:', error);
-      }
-    };
-
-    fetchProducts();
-  }, []);
+  
+  const { products } = useBillProduct();
+  const { items, handleItemChange: baseHandleItemChange, updateItemWithProduct, addNewItem, resetItems } = useBillItems();
+  const { getSubtotal, getTax, getTotal } = useBillCalculation(items);
 
   // Generate unique bill number on component mount
   useEffect(() => {
     setBillNumber(generateBillNumber());
   }, []);
 
+  // Wrap the handleItemChange to include product lookup
   const handleItemChange = (index: number, field: keyof BillItem, value: string | number) => {
-    const newItems = [...items];
-    
-    if (field === 'quantity' || field === 'price') {
-      newItems[index][field] = Number(value) || 0;
-    } else if (field === 'product_id' && typeof value === 'string') {
-      // Handle the manual entry option
-      if (value === "manual") {
-        newItems[index].product_id = "manual";
-        // Don't reset product_name if already set - let the user keep their manual entry
-        if (!newItems[index].product_name) {
-          newItems[index].product_name = "";
-        }
-        // Only reset price if it wasn't manually set or was 0
-        if (newItems[index].price === 0) {
-          newItems[index].price = 0;
-        }
-      } else if (value === "") {
-        // If "Select Product" is chosen
-        newItems[index].product_id = "";
-        newItems[index].product_name = "";
-        newItems[index].price = 0;
-      } else {
-        // Find the selected product
-        const product = products.find(p => p.product_id === value);
-        if (product) {
-          newItems[index].product_id = product.product_id;
-          newItems[index].product_name = product.name;
-          newItems[index].price = product.price;
-        }
-      }
+    if (field === 'product_id' && typeof value === 'string' && value !== 'manual' && value !== '') {
+      // This is a product selection
+      updateItemWithProduct(index, value, products);
     } else {
-      // For string fields like product_name
-      // @ts-ignore - TypeScript doesn't know that these fields are strings
-      newItems[index][field] = value;
+      // Let the base handler manage the change
+      baseHandleItemChange(index, field, value);
     }
-    
-    setItems(newItems);
-  };
-
-  const addNewItem = () => {
-    setItems([...items, { product_id: "", product_name: "", quantity: 0, price: 0 }]);
   };
 
   const handlePaymentStatus = (status: 'paid' | 'cancelled') => {
@@ -109,7 +58,7 @@ export const useBillForm = ({ onSubmit }: UseBillFormProps) => {
       // Reset form
       setBillNumber(generateBillNumber());
       setEmail("");
-      setItems([{ product_id: "", product_name: "", quantity: 0, price: 0 }]);
+      resetItems();
       setPaymentStatus('pending');
       setShowPrintPreview(false);
     }
@@ -135,7 +84,7 @@ export const useBillForm = ({ onSubmit }: UseBillFormProps) => {
     
     try {
       // Calculate total
-      const total = calculateTotal(items);
+      const total = getTotal();
       
       // Insert bill into bills table
       const { data: billData, error: billError } = await supabase
@@ -181,7 +130,7 @@ export const useBillForm = ({ onSubmit }: UseBillFormProps) => {
       // Reset form
       setBillNumber(generateBillNumber());
       setEmail("");
-      setItems([{ product_id: "", product_name: "", quantity: 0, price: 0 }]);
+      resetItems();
       setPaymentStatus('pending');
       setShowPrintPreview(false);
       
@@ -200,11 +149,6 @@ export const useBillForm = ({ onSubmit }: UseBillFormProps) => {
       setIsLoading(false);
     }
   };
-
-  // Helper functions for calculations
-  const getSubtotal = () => calculateSubtotal(items);
-  const getTax = () => calculateTax(items);
-  const getTotal = () => calculateTotal(items);
 
   return {
     billNumber,
