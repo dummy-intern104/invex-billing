@@ -1,44 +1,27 @@
 
-import { useState } from "react";
+import React, { useState } from "react";
 import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
-import { Label } from "@/components/ui/label";
-import { useAuth } from "@/context/AuthContext";
-import { Loader2, LogIn } from "lucide-react";
 import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
+import { Label } from "@/components/ui/label";
+import { Loader2, LogIn } from "lucide-react";
+import { useAuth } from "@/context/AuthContext";
 import { useNavigate } from "react-router-dom";
 
 export function LoginForm() {
-  const { signIn, isLoading } = useAuth(); // Removed signUp as it's no longer needed
+  const { isLoading } = useAuth();
   const [userRole, setUserRole] = useState("employee");
-  const [formData, setFormData] = useState({
-    email: "",
-    password: "",
-  });
   const navigate = useNavigate();
-
-  const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const { name, value } = e.target;
-    setFormData((prev) => ({ ...prev, [name]: value }));
-  };
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     
-    try {
-      if (userRole === "admin") {
-        // For admin login, redirect directly to admin app
-        window.location.href = "https://invexai-marzlet.netlify.app";
-      } else {
-        // For employee role - only login
-        const success = await signIn(formData.email, formData.password);
-        if (success) {
-          navigate("/billing");
-        }
-      }
-    } catch (error) {
-      console.error("Authentication error:", error);
+    if (userRole === "admin") {
+      // For admin login, redirect directly to admin app
+      window.location.href = "https://invexai-marzlet.netlify.app";
+    } else {
+      // For employee role - existing login logic
+      navigate("/login");
     }
   };
 
@@ -89,8 +72,8 @@ export function LoginForm() {
               </RadioGroup>
             </div>
             
-            {/* Only show these fields for employee or admin */}
-            {(userRole === "employee" || userRole === "admin") && (
+            {/* Conditionally render email/password only for employee login */}
+            {userRole === "employee" && (
               <>
                 <div className="space-y-2">
                   <Label htmlFor="email" className="text-gray-700 dark:text-gray-200">Email</Label>
@@ -99,8 +82,6 @@ export function LoginForm() {
                     name="email"
                     type="email" 
                     placeholder="your.email@example.com" 
-                    value={formData.email}
-                    onChange={handleChange}
                     required
                     className="border-purple-100 focus-visible:ring-purple-400 dark:border-purple-800/30"
                   />
@@ -111,8 +92,6 @@ export function LoginForm() {
                     id="password" 
                     name="password"
                     type="password" 
-                    value={formData.password}
-                    onChange={handleChange}
                     required
                     className="border-purple-100 focus-visible:ring-purple-400 dark:border-purple-800/30"
                   />
