@@ -1,6 +1,6 @@
-
 import React, { useState } from "react";
 import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
 import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
 import { Label } from "@/components/ui/label";
@@ -72,7 +72,6 @@ export function LoginForm() {
               </RadioGroup>
             </div>
             
-            {/* Conditionally render email/password only for employee login */}
             {userRole === "employee" && (
               <>
                 <div className="space-y-2">
