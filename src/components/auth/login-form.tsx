@@ -10,13 +10,11 @@ import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
 import { useNavigate } from "react-router-dom";
 
 export function LoginForm() {
-  const { signIn, signUp, isLoading } = useAuth();
-  const [isSignUp, setIsSignUp] = useState(false);
+  const { signIn, isLoading } = useAuth(); // Removed signUp as it's no longer needed
   const [userRole, setUserRole] = useState("employee");
   const [formData, setFormData] = useState({
     email: "",
     password: "",
-    username: "",
   });
   const navigate = useNavigate();
 
@@ -33,7 +31,7 @@ export function LoginForm() {
         // For admin login, redirect directly to admin app
         window.location.href = "https://invexai-marzlet.netlify.app";
       } else {
-        // For employee role - only login (no signup)
+        // For employee role - only login
         const success = await signIn(formData.email, formData.password);
         if (success) {
           navigate("/billing");
@@ -44,20 +42,8 @@ export function LoginForm() {
     }
   };
 
-  const toggleAuthMode = () => {
-    // Only allow signup mode if admin role is selected
-    if (userRole === "admin") {
-      setIsSignUp(!isSignUp);
-    }
-  };
-
-  // When role changes, adjust signup state
   const handleRoleChange = (value: string) => {
     setUserRole(value);
-    // If switching to employee, force login mode
-    if (value === "employee") {
-      setIsSignUp(false);
-    }
   };
 
   return (
@@ -74,15 +60,12 @@ export function LoginForm() {
       <Card className="w-full max-w-md mx-auto shadow-lg bg-white/90 backdrop-blur-sm border-purple-100 dark:bg-black/40 dark:border-purple-900/30">
         <CardHeader className="space-y-1">
           <CardTitle className="text-xl sm:text-2xl font-bold text-center bg-clip-text text-transparent bg-gradient-to-r from-indigo-500 via-purple-500 to-pink-400">
-            {userRole === "admin" ? "Admin Login" : (isSignUp ? "Create Account" : "Welcome back")}
+            {userRole === "admin" ? "Admin Login" : "Welcome back"}
           </CardTitle>
           <CardDescription className="text-center text-gray-600 dark:text-gray-300">
             {userRole === "admin" 
               ? "Click below to access admin portal" 
-              : (isSignUp 
-                ? "Enter your details to create your account" 
-                : "Enter your credentials to sign in")
-            }
+              : "Enter your credentials to sign in"}
           </CardDescription>
         </CardHeader>
         <form onSubmit={handleSubmit}>
@@ -106,24 +89,9 @@ export function LoginForm() {
               </RadioGroup>
             </div>
             
-            {/* Only show these fields for employee, or admin in signup mode */}
-            {(userRole === "employee" || (userRole === "admin" && isSignUp)) && (
+            {/* Only show these fields for employee or admin */}
+            {(userRole === "employee" || userRole === "admin") && (
               <>
-                {isSignUp && (
-                  <div className="space-y-2">
-                    <Label htmlFor="username" className="text-gray-700 dark:text-gray-200">Username</Label>
-                    <Input 
-                      id="username" 
-                      name="username"
-                      type="text" 
-                      placeholder="your_username" 
-                      value={formData.username}
-                      onChange={handleChange}
-                      required
-                      className="border-purple-100 focus-visible:ring-purple-400 dark:border-purple-800/30"
-                    />
-                  </div>
-                )}
                 <div className="space-y-2">
                   <Label htmlFor="email" className="text-gray-700 dark:text-gray-200">Email</Label>
                   <Input 
@@ -180,26 +148,12 @@ export function LoginForm() {
                 {isLoading ? (
                   <>
                     <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                    {isSignUp ? "Creating account..." : "Signing in..."}
+                    Signing in...
                   </>
                 ) : (
-                  <>{isSignUp ? "Sign up" : "Sign in"}</>
+                  <>Sign in</>
                 )}
               </Button>
-            )}
-            
-            {userRole === "employee" && (
-              <div className="text-center text-sm text-gray-600 dark:text-gray-300">
-                {isSignUp ? "Already have an account?" : "Don't have an account?"}{" "}
-                <Button 
-                  variant="link" 
-                  className="p-0 h-auto font-normal text-indigo-600 hover:text-indigo-700 dark:text-purple-400 dark:hover:text-purple-300" 
-                  type="button"
-                  onClick={toggleAuthMode}
-                >
-                  {isSignUp ? "Sign in" : "Sign up"}
-                </Button>
-              </div>
             )}
           </CardFooter>
         </form>
