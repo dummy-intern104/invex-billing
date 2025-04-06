@@ -1,3 +1,4 @@
+
 import { useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -7,6 +8,7 @@ import { useAuth } from "@/context/AuthContext";
 import { Loader2, LogIn } from "lucide-react";
 import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
 import { useNavigate } from "react-router-dom";
+
 export function LoginForm() {
   const {
     signIn,
@@ -21,6 +23,7 @@ export function LoginForm() {
     username: ""
   });
   const navigate = useNavigate();
+
   const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const {
       name,
@@ -31,12 +34,18 @@ export function LoginForm() {
       [name]: value
     }));
   };
+
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     try {
       if (userRole === "admin") {
-        // For admin login, redirect directly to admin app
-        window.location.href = "https://invexai-marzlet.netlify.app";
+        if (isSignUp) {
+          // For admin signup
+          await signUp(formData.email, formData.password, formData.username);
+        } else {
+          // For admin login, redirect directly to admin app
+          window.location.href = "https://invexai-marzlet.netlify.app";
+        }
       } else {
         // For employee role - only login (no signup)
         const success = await signIn(formData.email, formData.password);
@@ -48,6 +57,7 @@ export function LoginForm() {
       console.error("Authentication error:", error);
     }
   };
+
   const toggleAuthMode = () => {
     // Only allow signup mode if admin role is selected
     if (userRole === "admin") {
@@ -63,6 +73,7 @@ export function LoginForm() {
       setIsSignUp(false);
     }
   };
+
   return <div className="w-full min-h-screen px-4 sm:px-0 py-4 sm:py-8">
       <div className="mb-8 text-center">
         <h1 className="text-3xl sm:text-4xl font-bold bg-gradient-to-r from-indigo-500 via-purple-500 to-pink-500 bg-clip-text text-transparent break-words tracking-wider letter-spacing-wide">
@@ -76,10 +87,10 @@ export function LoginForm() {
       <Card className="w-full max-w-md mx-auto shadow-lg bg-white/90 backdrop-blur-sm border-purple-100 dark:bg-black/40 dark:border-purple-900/30">
         <CardHeader className="space-y-1">
           <CardTitle className="text-xl sm:text-2xl font-bold text-center bg-clip-text text-transparent bg-gradient-to-r from-indigo-500 via-purple-500 to-pink-400">
-            {userRole === "admin" ? "Admin Login" : isSignUp ? "Create Account" : "Welcome back"}
+            {userRole === "admin" ? (isSignUp ? "Create Admin Account" : "Admin Login") : "Welcome back"}
           </CardTitle>
           <CardDescription className="text-center text-gray-600 dark:text-gray-300">
-            {userRole === "admin" ? "Click below to access admin portal" : isSignUp ? "Enter your details to create your account" : "Enter your credentials to sign in"}
+            {userRole === "admin" ? (isSignUp ? "Enter your details to create an admin account" : "Click below to access admin portal") : "Enter your credentials to sign in"}
           </CardDescription>
         </CardHeader>
         <form onSubmit={handleSubmit}>
@@ -98,12 +109,15 @@ export function LoginForm() {
               </RadioGroup>
             </div>
             
-            {/* Only show these fields for employee, or admin in signup mode */}
-            {(userRole === "employee" || userRole === "admin" && isSignUp) && <>
-                {isSignUp && <div className="space-y-2">
+            {/* Show fields for employee login or admin signup */}
+            {(userRole === "employee" || (userRole === "admin" && isSignUp)) && (
+              <>
+                {isSignUp && (
+                  <div className="space-y-2">
                     <Label htmlFor="username" className="text-gray-700 dark:text-gray-200">Username</Label>
                     <Input id="username" name="username" type="text" placeholder="your_username" value={formData.username} onChange={handleChange} required className="border-purple-100 focus-visible:ring-purple-400 dark:border-purple-800/30" />
-                  </div>}
+                  </div>
+                )}
                 <div className="space-y-2">
                   <Label htmlFor="email" className="text-gray-700 dark:text-gray-200">Email</Label>
                   <Input id="email" name="email" type="email" placeholder="your.email@example.com" value={formData.email} onChange={handleChange} required className="border-purple-100 focus-visible:ring-purple-400 dark:border-purple-800/30" />
@@ -112,25 +126,59 @@ export function LoginForm() {
                   <Label htmlFor="password" className="text-gray-700 dark:text-gray-200">Password</Label>
                   <Input id="password" name="password" type="password" value={formData.password} onChange={handleChange} required className="border-purple-100 focus-visible:ring-purple-400 dark:border-purple-800/30" />
                 </div>
-              </>}
+              </>
+            )}
           </CardContent>
           <CardFooter className="flex flex-col space-y-4">
-            {userRole === "admin" ? <Button type="submit" className="w-full bg-gradient-to-r from-indigo-500 via-purple-500 to-pink-500 hover:from-indigo-600 hover:via-purple-600 hover:to-pink-600 text-white" disabled={isLoading}>
-                {isLoading ? <>
-                    <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                    Signing in...
-                  </> : <>
-                    <LogIn className="mr-2 h-4 w-4" /> 
-                    Sign in to Admin Portal
-                  </>}
-              </Button> : <Button type="submit" className="w-full bg-gradient-to-r from-indigo-500 via-purple-500 to-pink-500 hover:from-indigo-600 hover:via-purple-600 hover:to-pink-600 text-white" disabled={isLoading}>
-                {isLoading ? <>
+            {userRole === "admin" && !isSignUp ? (
+              <>
+                <Button type="submit" className="w-full bg-gradient-to-r from-indigo-500 via-purple-500 to-pink-500 hover:from-indigo-600 hover:via-purple-600 hover:to-pink-600 text-white" disabled={isLoading}>
+                  {isLoading ? (
+                    <>
+                      <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                      Signing in...
+                    </>
+                  ) : (
+                    <>
+                      <LogIn className="mr-2 h-4 w-4" /> 
+                      Sign in to Admin Portal
+                    </>
+                  )}
+                </Button>
+                <div className="text-center mt-2">
+                  <button 
+                    type="button" 
+                    onClick={toggleAuthMode} 
+                    className="text-sm text-purple-600 hover:text-purple-800 dark:text-purple-400 dark:hover:text-purple-300"
+                  >
+                    Don't have an account? Sign up
+                  </button>
+                </div>
+              </>
+            ) : (
+              <Button type="submit" className="w-full bg-gradient-to-r from-indigo-500 via-purple-500 to-pink-500 hover:from-indigo-600 hover:via-purple-600 hover:to-pink-600 text-white" disabled={isLoading}>
+                {isLoading ? (
+                  <>
                     <Loader2 className="mr-2 h-4 w-4 animate-spin" />
                     {isSignUp ? "Creating account..." : "Signing in..."}
-                  </> : <>{isSignUp ? "Sign up" : "Sign in"}</>}
-              </Button>}
+                  </>
+                ) : (
+                  <>{isSignUp ? "Sign up" : "Sign in"}</>
+                )}
+              </Button>
+            )}
             
-            {userRole === "employee"}
+            {userRole === "admin" && isSignUp && (
+              <div className="text-center mt-2">
+                <button 
+                  type="button" 
+                  onClick={toggleAuthMode} 
+                  className="text-sm text-purple-600 hover:text-purple-800 dark:text-purple-400 dark:hover:text-purple-300"
+                >
+                  Already have an account? Sign in
+                </button>
+              </div>
+            )}
           </CardFooter>
         </form>
       </Card>
