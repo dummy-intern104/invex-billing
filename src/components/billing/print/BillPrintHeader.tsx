@@ -8,21 +8,21 @@ interface BillPrintHeaderProps {
 
 const BillPrintHeader: React.FC<BillPrintHeaderProps> = ({ companyData }) => {
   return (
-    <div className="header">
+    <div className="header flex justify-between items-center">
       <div className="logo">
         {companyData.logo_url ? (
-          <img src={companyData.logo_url} alt="Company Logo" width="80" />
+          <img src={companyData.logo_url} alt="Company Logo" width="60" height="60" />
         ) : (
-          <div className="w-20 h-20 border border-dashed flex items-center justify-center">
+          <div className="w-16 h-16 border border-dashed flex items-center justify-center">
             <span className="text-xs text-gray-400">No Logo</span>
           </div>
         )}
       </div>
-      <div className="company-details">
-        <h2 className="text-lg font-bold mb-0">{companyData.company_name}</h2>
-        <p className="text-sm mb-0">{companyData.address}</p>
-        <p className="text-sm mb-0">Phone no.: {companyData.phone} Email: {companyData.email}</p>
-        <p className="text-sm mb-0">GSTIN: {companyData.gstin}, State: {companyData.state}</p>
+      <div className="company-details text-right">
+        <h2 className="text-base font-bold mb-0">{companyData.company_name}</h2>
+        <p className="text-xs mb-0">{companyData.address}</p>
+        <p className="text-xs mb-0">Phone no.: {companyData.phone} Email: {companyData.email}</p>
+        <p className="text-xs mb-0">GSTIN: {companyData.gstin}, State: {companyData.state}</p>
       </div>
     </div>
   );

@@ -10,13 +10,13 @@ const BillPrintBankDetails: React.FC<BillPrintBankDetailsProps> = ({
   companyData
 }) => {
   return (
-    <div className="bank-details mt-6">
-      <div className="section-header bg-blue-500 text-white px-2 py-1">Bank Details</div>
-      <div className="p-2 border border-gray-300">
-        <p className="text-sm mb-1">Name: {companyData.bank_name}</p>
-        <p className="text-sm mb-1">Account No.: {companyData.account_number}</p>
-        <p className="text-sm mb-1">IFSC code: {companyData.ifsc_code}</p>
-        <p className="text-sm mb-1">Account holder's name: {companyData.account_holder_name}</p>
+    <div className="bank-details mt-3">
+      <div className="section-header bg-[#4A7ADB] text-white px-2 py-1 text-xs">Bank Details</div>
+      <div className="p-1 border border-gray-300">
+        <p className="text-xs mb-0">Name: {companyData.bank_name}</p>
+        <p className="text-xs mb-0">Account No.: {companyData.account_number}</p>
+        <p className="text-xs mb-0">IFSC code: {companyData.ifsc_code}</p>
+        <p className="text-xs mb-0">Account holder's name: {companyData.account_holder_name}</p>
       </div>
     </div>
   );
