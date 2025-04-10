@@ -1,8 +1,8 @@
 
 import React, { useEffect, useState } from "react";
 import { Card, CardContent } from "@/components/ui/card";
-import { Receipt, Loader2 } from "lucide-react";
-import { BillHistoryItem } from "@/types/billing";
+import { Receipt, Loader2, Package } from "lucide-react";
+import { BillHistoryItem, BillItem } from "@/types/billing";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/context/AuthContext";
 
@@ -10,8 +10,12 @@ interface BillHistoryProps {
   billHistory: BillHistoryItem[];
 }
 
+interface EnhancedBillHistoryItem extends BillHistoryItem {
+  items?: BillItem[];
+}
+
 const BillHistory: React.FC<BillHistoryProps> = ({ billHistory: initialBillHistory }) => {
-  const [billHistory, setBillHistory] = useState<BillHistoryItem[]>(initialBillHistory);
+  const [billHistory, setBillHistory] = useState<EnhancedBillHistoryItem[]>(initialBillHistory);
   const [isLoading, setIsLoading] = useState(true);
   const { user } = useAuth();
 
@@ -30,7 +34,23 @@ const BillHistory: React.FC<BillHistoryProps> = ({ billHistory: initialBillHisto
           .order('created_at', { ascending: false });
           
         if (error) throw error;
-        if (data) setBillHistory(data);
+        
+        if (data) {
+          // Fetch bill items for each bill
+          const enhancedBills = await Promise.all(data.map(async (bill) => {
+            const { data: billItems } = await supabase
+              .from('bill_items')
+              .select('*')
+              .eq('bill_id', bill.id);
+              
+            return {
+              ...bill,
+              items: billItems || []
+            };
+          }));
+          
+          setBillHistory(enhancedBills);
+        }
       } catch (error) {
         console.error('Error fetching bill history:', error);
       } finally {
@@ -51,9 +71,21 @@ const BillHistory: React.FC<BillHistoryProps> = ({ billHistory: initialBillHisto
           table: 'bills',
           filter: `customer_email=eq.${user.email}`
         },
-        (payload) => {
+        async (payload) => {
           const newBill = payload.new as BillHistoryItem;
-          setBillHistory(prev => [newBill, ...prev]);
+          
+          // Fetch bill items for the new bill
+          const { data: billItems } = await supabase
+            .from('bill_items')
+            .select('*')
+            .eq('bill_id', newBill.id);
+          
+          const enhancedBill = {
+            ...newBill,
+            items: billItems || []
+          };
+          
+          setBillHistory(prev => [enhancedBill, ...prev]);
         }
       )
       .subscribe();
@@ -77,7 +109,7 @@ const BillHistory: React.FC<BillHistoryProps> = ({ billHistory: initialBillHisto
                 key={bill.id} 
                 className="border border-purple-100 dark:border-purple-800/30 rounded-md p-4 hover:bg-purple-50 dark:hover:bg-purple-900/20 transition-colors"
               >
-                <div className="flex justify-between items-center">
+                <div className="flex justify-between items-center mb-2">
                   <div className="flex items-center">
                     <Receipt className="h-4 w-4 text-purple-500 mr-2" />
                     <div>
@@ -92,6 +124,27 @@ const BillHistory: React.FC<BillHistoryProps> = ({ billHistory: initialBillHisto
                     </p>
                   </div>
                 </div>
+                
+                {/* Display products in the bill */}
+                {bill.items && bill.items.length > 0 && (
+                  <div className="mt-2 pt-2 border-t border-gray-100 dark:border-gray-800">
+                    <p className="text-xs font-medium text-gray-500 dark:text-gray-400 mb-1">Products:</p>
+                    <div className="space-y-1">
+                      {bill.items.slice(0, 3).map((item, index) => (
+                        <div key={index} className="flex items-center text-xs text-gray-600 dark:text-gray-400">
+                          <Package className="h-3 w-3 mr-1 text-purple-400" />
+                          <span className="truncate max-w-[70%]">{item.product_name}</span>
+                          <span className="ml-auto">x{item.quantity}</span>
+                        </div>
+                      ))}
+                      {bill.items.length > 3 && (
+                        <p className="text-xs text-gray-500 dark:text-gray-400 italic">
+                          +{bill.items.length - 3} more items
+                        </p>
+                      )}
+                    </div>
+                  </div>
+                )}
               </div>
             ))}
             

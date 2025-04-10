@@ -11,7 +11,7 @@ const BillPrintBankDetails: React.FC<BillPrintBankDetailsProps> = ({
 }) => {
   return (
     <div className="bank-details mt-3">
-      <div className="section-header bg-[#1EAEDB] text-white px-2 py-1 text-xs">Bank Details</div>
+      <div className="section-header bg-[#4A7ADB] text-white px-2 py-1 text-xs">Bank Details</div>
       <div className="p-1 border border-gray-300">
         <p className="text-xs mb-0">Name: {companyData.bank_name}</p>
         <p className="text-xs mb-0">Account No.: {companyData.account_number}</p>

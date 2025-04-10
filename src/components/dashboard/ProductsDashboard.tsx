@@ -66,7 +66,7 @@ const ProductsDashboard: React.FC<ProductsDashboardProps> = ({ userEmail }) => {
           const productMap: Record<string, ProductData> = {};
           
           itemsData.forEach(item => {
-            const productId = item.product_id;
+            const productId = item.product_id || item.product_name;
             if (!productMap[productId]) {
               productMap[productId] = {
                 id: productId,
@@ -102,6 +102,27 @@ const ProductsDashboard: React.FC<ProductsDashboardProps> = ({ userEmail }) => {
 
     if (userEmail) {
       fetchProductData();
+
+      // Subscribe to real-time updates
+      const channel = supabase
+        .channel('products-updates')
+        .on(
+          'postgres_changes',
+          {
+            event: 'INSERT',
+            schema: 'public',
+            table: 'bill_items'
+          },
+          () => {
+            // Refresh data when new bill items are added
+            fetchProductData();
+          }
+        )
+        .subscribe();
+
+      return () => {
+        supabase.removeChannel(channel);
+      };
     }
   }, [userEmail]);
 

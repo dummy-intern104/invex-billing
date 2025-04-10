@@ -58,6 +58,28 @@ const SalesDashboard: React.FC<SalesDashboardProps> = ({ userEmail }) => {
 
     if (userEmail) {
       fetchSalesData();
+
+      // Subscribe to real-time updates
+      const channel = supabase
+        .channel('sales-updates')
+        .on(
+          'postgres_changes',
+          {
+            event: 'INSERT',
+            schema: 'public',
+            table: 'bills',
+            filter: `customer_email=eq.${userEmail}`
+          },
+          () => {
+            // Refresh data when a new bill is added
+            fetchSalesData();
+          }
+        )
+        .subscribe();
+
+      return () => {
+        supabase.removeChannel(channel);
+      };
     }
   }, [userEmail]);
 

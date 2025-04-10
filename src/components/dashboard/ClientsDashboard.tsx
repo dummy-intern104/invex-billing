@@ -78,6 +78,28 @@ const ClientsDashboard: React.FC<ClientsDashboardProps> = ({ userEmail }) => {
 
     if (userEmail) {
       fetchClientData();
+
+      // Subscribe to real-time updates
+      const channel = supabase
+        .channel('clients-updates')
+        .on(
+          'postgres_changes',
+          {
+            event: 'INSERT',
+            schema: 'public',
+            table: 'bills',
+            filter: `customer_email=eq.${userEmail}`
+          },
+          () => {
+            // Refresh data when a new bill is added
+            fetchClientData();
+          }
+        )
+        .subscribe();
+
+      return () => {
+        supabase.removeChannel(channel);
+      };
     }
   }, [userEmail]);
 
