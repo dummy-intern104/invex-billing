@@ -10,12 +10,16 @@ import BillHistory from "@/components/billing/BillHistory";
 import { BillHistoryItem, BillItem } from "@/types/billing";
 import { supabase } from "@/integrations/supabase/client";
 import MobileNavbar from "@/components/layout/MobileNavbar";
+import { Button } from "@/components/ui/button";
+import { PlusCircle } from "lucide-react";
+import { Dialog, DialogContent, DialogTitle } from "@/components/ui/dialog";
 
 const Billing = () => {
   const { user, signOut } = useAuth();
   const navigate = useNavigate();
   const { toast } = useToast();
   const [billHistory, setBillHistory] = useState<BillHistoryItem[]>([]);
+  const [showBillForm, setShowBillForm] = useState(false);
   
   useEffect(() => {
     if (!user) {
@@ -72,6 +76,9 @@ const Billing = () => {
       
       fetchBillHistory();
     }
+    
+    // Close the bill form dialog
+    setShowBillForm(false);
   };
 
   const handleLogout = async () => {
@@ -88,23 +95,29 @@ const Billing = () => {
       <BillingHeader user={user} onLogout={handleLogout} />
 
       <main className="container mx-auto px-4 py-6">
-        <div className="grid grid-cols-1 md:grid-cols-12 gap-6">
-          <div className="md:col-span-7">
-            <Card className="bg-white/90 backdrop-blur-sm border-purple-100 dark:bg-black/40 dark:border-purple-900/30 shadow-lg">
-              <CardContent className="p-6">
-                <h2 className="text-xl font-semibold mb-4 text-gray-800 dark:text-gray-200">
-                  Create New Invoice
-                </h2>
-                <BillForm onSubmit={handleBillSubmit} />
-              </CardContent>
-            </Card>
-          </div>
-          
-          <div className="md:col-span-5">
-            <BillHistory billHistory={billHistory} />
-          </div>
+        <div className="flex justify-between items-center mb-6">
+          <h2 className="text-xl font-semibold text-gray-800 dark:text-gray-200">
+            Recent Invoices
+          </h2>
+          <Button 
+            onClick={() => setShowBillForm(true)}
+            className="bg-purple-600 hover:bg-purple-700 text-white"
+          >
+            <PlusCircle className="mr-2 h-4 w-4" /> Add Invoice
+          </Button>
+        </div>
+        
+        <div className="w-full">
+          <BillHistory billHistory={billHistory} />
         </div>
       </main>
+      
+      <Dialog open={showBillForm} onOpenChange={setShowBillForm}>
+        <DialogContent className="sm:max-w-[800px] max-h-[90vh] overflow-y-auto">
+          <DialogTitle className="text-xl font-semibold mb-4">Create New Invoice</DialogTitle>
+          <BillForm onSubmit={handleBillSubmit} />
+        </DialogContent>
+      </Dialog>
       
       <MobileNavbar />
     </div>

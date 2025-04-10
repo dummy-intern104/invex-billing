@@ -17,7 +17,7 @@ export const calculateTotal = (items: BillItem[]): number => {
 };
 
 export const generateBillNumber = (): string => {
-  return `INV-${Date.now().toString().slice(-6)}`;
+  return `MRZ-${Date.now().toString().slice(-6)}`;
 };
 
 export const formatCurrency = (amount: number): string => {

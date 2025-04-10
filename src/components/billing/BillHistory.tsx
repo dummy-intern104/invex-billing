@@ -66,16 +66,12 @@ const BillHistory: React.FC<BillHistoryProps> = ({ billHistory: initialBillHisto
   return (
     <Card className="bg-white/90 backdrop-blur-sm border-purple-100 dark:bg-black/40 dark:border-purple-900/30 shadow-lg">
       <CardContent className="p-6">
-        <h2 className="text-lg font-semibold mb-4 text-gray-800 dark:text-gray-200">
-          Recent Invoices
-        </h2>
-        
         {isLoading ? (
           <div className="flex justify-center py-6">
             <Loader2 className="h-8 w-8 text-purple-500 animate-spin" />
           </div>
         ) : (
-          <div className="space-y-3">
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-3">
             {billHistory.map((bill) => (
               <div 
                 key={bill.id} 
@@ -100,7 +96,7 @@ const BillHistory: React.FC<BillHistoryProps> = ({ billHistory: initialBillHisto
             ))}
             
             {billHistory.length === 0 && (
-              <div className="text-center py-6 text-gray-500 dark:text-gray-400">
+              <div className="text-center py-6 text-gray-500 dark:text-gray-400 col-span-full">
                 No invoices generated yet
               </div>
             )}
