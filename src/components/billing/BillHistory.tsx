@@ -60,38 +60,44 @@ const BillHistory: React.FC<BillHistoryProps> = ({ billHistory: initialBillHisto
 
     fetchBillHistory();
 
-    // Subscribe to realtime changes, but only for the current user's bills
-    const channel = supabase
-      .channel('schema-db-changes')
+    // Subscribe to realtime changes for bills
+    const billsChannel = supabase
+      .channel('bills-changes')
       .on(
         'postgres_changes',
         {
-          event: 'INSERT',
+          event: '*', // Listen for all events (INSERT, UPDATE, DELETE)
           schema: 'public',
           table: 'bills',
           filter: `customer_email=eq.${user.email}`
         },
-        async (payload) => {
-          const newBill = payload.new as BillHistoryItem;
-          
-          // Fetch bill items for the new bill
-          const { data: billItems } = await supabase
-            .from('bill_items')
-            .select('*')
-            .eq('bill_id', newBill.id);
-          
-          const enhancedBill = {
-            ...newBill,
-            items: billItems || []
-          };
-          
-          setBillHistory(prev => [enhancedBill, ...prev]);
+        () => {
+          // Refresh bill history when any changes occur
+          fetchBillHistory();
+        }
+      )
+      .subscribe();
+
+    // Subscribe to realtime changes for bill_items
+    const billItemsChannel = supabase
+      .channel('bill-items-changes')
+      .on(
+        'postgres_changes',
+        {
+          event: '*', // Listen for all events
+          schema: 'public',
+          table: 'bill_items'
+        },
+        () => {
+          // Refresh bill history when items change
+          fetchBillHistory();
         }
       )
       .subscribe();
 
     return () => {
-      supabase.removeChannel(channel);
+      supabase.removeChannel(billsChannel);
+      supabase.removeChannel(billItemsChannel);
     };
   }, [user]);
 

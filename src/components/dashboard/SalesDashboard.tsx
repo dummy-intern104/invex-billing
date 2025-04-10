@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, PieChart, Pie, Cell } from 'recharts';
@@ -59,26 +58,26 @@ const SalesDashboard: React.FC<SalesDashboardProps> = ({ userEmail }) => {
     if (userEmail) {
       fetchSalesData();
 
-      // Subscribe to real-time updates
-      const channel = supabase
-        .channel('sales-updates')
+      // Subscribe to real-time updates for bills table
+      const billsChannel = supabase
+        .channel('sales-dashboard-bills')
         .on(
           'postgres_changes',
           {
-            event: 'INSERT',
+            event: '*', // Listen for all events (INSERT, UPDATE, DELETE)
             schema: 'public',
             table: 'bills',
             filter: `customer_email=eq.${userEmail}`
           },
           () => {
-            // Refresh data when a new bill is added
+            console.log('Bills table changed, refreshing sales data');
             fetchSalesData();
           }
         )
         .subscribe();
 
       return () => {
-        supabase.removeChannel(channel);
+        supabase.removeChannel(billsChannel);
       };
     }
   }, [userEmail]);

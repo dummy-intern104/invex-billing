@@ -51,34 +51,52 @@ const Billing = () => {
     };
     
     fetchBillHistory();
+    
+    // Subscribe to realtime changes in bills table
+    const channel = supabase
+      .channel('billing-page-changes')
+      .on(
+        'postgres_changes',
+        {
+          event: 'INSERT',
+          schema: 'public',
+          table: 'bills',
+          filter: `customer_email=eq.${user.email}`
+        },
+        () => {
+          // Refresh bill history when a new bill is added
+          fetchBillHistory();
+        }
+      )
+      .subscribe();
+      
+    return () => {
+      supabase.removeChannel(channel);
+    };
   }, [user, navigate]);
 
-  const handleBillSubmit = (billNumber: string, email: string, items: BillItem[], total: number) => {
+  const handleBillSubmit = async (billNumber: string, email: string, items: BillItem[], total: number) => {
     toast({
       title: "Invoice generated",
       description: `Invoice ${billNumber} has been successfully generated and sent to ${email}`,
     });
     
-    // Refresh bill history after a new bill is submitted
-    if (user) {
-      const fetchBillHistory = async () => {
-        const { data } = await supabase
-          .from('bills')
-          .select('*')
-          .eq('customer_email', user.email)
-          .order('created_at', { ascending: false })
-          .limit(10);
-          
-        if (data) {
-          setBillHistory(data as BillHistoryItem[]);
-        }
-      };
-      
-      fetchBillHistory();
-    }
-    
     // Close the bill form dialog
     setShowBillForm(false);
+    
+    // Force refresh bill history after a new bill is submitted
+    if (user) {
+      const { data } = await supabase
+        .from('bills')
+        .select('*')
+        .eq('customer_email', user.email)
+        .order('created_at', { ascending: false })
+        .limit(10);
+        
+      if (data) {
+        setBillHistory(data as BillHistoryItem[]);
+      }
+    }
   };
 
   const handleLogout = async () => {

@@ -1,4 +1,3 @@
-
 import { BillItem } from "@/types/billing";
 
 // Tax rate (18% GST for India)
@@ -16,8 +15,10 @@ export const calculateTotal = (items: BillItem[]): number => {
   return calculateSubtotal(items) + calculateTax(items);
 };
 
-export const generateBillNumber = (): string => {
-  return `MRZ-${Date.now().toString().slice(-6)}`;
+export const generateBillNumber = () => {
+  // Generate a 6 digit random number and prefix it with MRZ
+  const randomNumber = Math.floor(100000 + Math.random() * 900000);
+  return `MRZ-${randomNumber}`;
 };
 
 export const formatCurrency = (amount: number): string => {

@@ -103,25 +103,44 @@ const ProductsDashboard: React.FC<ProductsDashboardProps> = ({ userEmail }) => {
     if (userEmail) {
       fetchProductData();
 
-      // Subscribe to real-time updates
-      const channel = supabase
-        .channel('products-updates')
+      // Subscribe to real-time updates for bills
+      const billsChannel = supabase
+        .channel('products-bills-updates')
         .on(
           'postgres_changes',
           {
-            event: 'INSERT',
+            event: '*',
+            schema: 'public',
+            table: 'bills',
+            filter: `customer_email=eq.${userEmail}`
+          },
+          () => {
+            console.log('Bills changed, refreshing product data');
+            fetchProductData();
+          }
+        )
+        .subscribe();
+
+      // Subscribe to real-time updates for bill_items
+      const itemsChannel = supabase
+        .channel('products-items-updates')
+        .on(
+          'postgres_changes',
+          {
+            event: '*',
             schema: 'public',
             table: 'bill_items'
           },
           () => {
-            // Refresh data when new bill items are added
+            console.log('Bill items changed, refreshing product data');
             fetchProductData();
           }
         )
         .subscribe();
 
       return () => {
-        supabase.removeChannel(channel);
+        supabase.removeChannel(billsChannel);
+        supabase.removeChannel(itemsChannel);
       };
     }
   }, [userEmail]);
