@@ -10,13 +10,12 @@ interface BillHistoryProps {
   billHistory: BillHistoryItem[];
 }
 
-// Separate interface to avoid circular type reference
-interface BillHistoryItemWithItems extends BillHistoryItem {
+interface EnhancedBillHistoryItem extends BillHistoryItem {
   items?: BillItem[];
 }
 
 const BillHistory: React.FC<BillHistoryProps> = ({ billHistory: initialBillHistory }) => {
-  const [billHistory, setBillHistory] = useState<BillHistoryItemWithItems[]>(initialBillHistory as BillHistoryItemWithItems[]);
+  const [billHistory, setBillHistory] = useState<EnhancedBillHistoryItem[]>(initialBillHistory);
   const [isLoading, setIsLoading] = useState(true);
   const { user } = useAuth();
 
@@ -24,14 +23,13 @@ const BillHistory: React.FC<BillHistoryProps> = ({ billHistory: initialBillHisto
     // Only proceed if we have a user
     if (!user) return;
     
-    // Fetch bills created by the current user
+    // Fetch all bills without filtering by customer email
     const fetchBillHistory = async () => {
       try {
         setIsLoading(true);
         const { data, error } = await supabase
           .from('bills')
           .select('*')
-          .eq('created_by', user.id) // Filter by the user who created the bill
           .order('created_at', { ascending: false });
           
         if (error) throw error;
@@ -61,7 +59,7 @@ const BillHistory: React.FC<BillHistoryProps> = ({ billHistory: initialBillHisto
 
     fetchBillHistory();
 
-    // Subscribe to realtime changes for bills created by this user
+    // Subscribe to realtime changes for bills
     const billsChannel = supabase
       .channel('bills-changes')
       .on(
@@ -69,8 +67,7 @@ const BillHistory: React.FC<BillHistoryProps> = ({ billHistory: initialBillHisto
         {
           event: '*', // Listen for all events (INSERT, UPDATE, DELETE)
           schema: 'public',
-          table: 'bills',
-          filter: `created_by=eq.${user.id}` // Only listen for changes to bills created by this user
+          table: 'bills'
         },
         () => {
           // Refresh bill history when any changes occur

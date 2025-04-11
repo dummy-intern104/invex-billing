@@ -3,7 +3,6 @@ import { useState, useEffect } from "react";
 import { BillItem } from "@/types/billing";
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
-import { useAuth } from "@/context/AuthContext";
 import {
   generateBillNumber,
   validateBillForm
@@ -18,7 +17,6 @@ interface UseBillFormProps {
 
 export const useBillForm = ({ onSubmit }: UseBillFormProps) => {
   const { toast } = useToast();
-  const { user } = useAuth();
   const [billNumber, setBillNumber] = useState("");
   const [email, setEmail] = useState("");
   const [isLoading, setIsLoading] = useState(false);
@@ -82,29 +80,19 @@ export const useBillForm = ({ onSubmit }: UseBillFormProps) => {
   };
 
   const handleSubmit = async () => {
-    if (!user) {
-      toast({
-        title: "Authentication required",
-        description: "You must be logged in to create invoices",
-        variant: "destructive",
-      });
-      return;
-    }
-    
     setIsLoading(true);
     
     try {
       // Calculate total
       const total = getTotal();
       
-      // Insert bill into bills table with user ID as creator
+      // Insert bill into bills table
       const { data: billData, error: billError } = await supabase
         .from('bills')
         .insert({
           bill_number: billNumber,
           customer_email: email,
-          total: total,
-          created_by: user.id // Track who created this bill
+          total: total
         })
         .select();
       

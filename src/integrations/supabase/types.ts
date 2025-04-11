@@ -51,7 +51,6 @@ export type Database = {
         Row: {
           bill_number: string
           created_at: string
-          created_by: string
           customer_email: string
           id: string
           total: number
@@ -60,7 +59,6 @@ export type Database = {
         Insert: {
           bill_number: string
           created_at?: string
-          created_by: string
           customer_email: string
           id?: string
           total?: number
@@ -69,7 +67,6 @@ export type Database = {
         Update: {
           bill_number?: string
           created_at?: string
-          created_by?: string
           customer_email?: string
           id?: string
           total?: number

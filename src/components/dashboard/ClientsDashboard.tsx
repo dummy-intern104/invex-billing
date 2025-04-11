@@ -1,41 +1,175 @@
 
-import React from 'react';
+import React, { useState, useEffect } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { useClientsData } from "@/hooks/useClientsData";
-import ClientsTable from './clients/ClientsTable';
-import ClientsBarChart from './clients/ClientsBarChart';
-import SalesMetricCard from './sales/SalesMetricCard';
+import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer } from 'recharts';
+import { supabase } from "@/integrations/supabase/client";
 
 interface ClientsDashboardProps {
   userEmail: string;
 }
 
+// Define proper interfaces for our data
+interface ClientData {
+  email: string;
+  billCount: number;
+  totalSpent: number;
+}
+
+interface TopClientData {
+  name: string;
+  spent: number;
+}
+
 const ClientsDashboard: React.FC<ClientsDashboardProps> = ({ userEmail }) => {
-  const { clientsData, topClients, totalClients, isLoading } = useClientsData(userEmail);
+  const [clientData, setClientData] = useState<ClientData[]>([]);
+  const [topClients, setTopClients] = useState<TopClientData[]>([]);
+  const [isLoading, setIsLoading] = useState(true);
+
+  useEffect(() => {
+    const fetchClientData = async () => {
+      setIsLoading(true);
+      try {
+        // Get all bills data without filtering by customer_email
+        const { data: billsData, error } = await supabase
+          .from('bills')
+          .select('*');
+
+        if (error) {
+          console.error('Error fetching client data:', error);
+          return;
+        }
+
+        if (billsData) {
+          // Process client data
+          const clientMap: Record<string, ClientData> = {};
+          
+          billsData.forEach(bill => {
+            const clientEmail = bill.customer_email;
+            if (!clientMap[clientEmail]) {
+              clientMap[clientEmail] = {
+                email: clientEmail,
+                billCount: 0,
+                totalSpent: 0
+              };
+            }
+            
+            clientMap[clientEmail].billCount += 1;
+            clientMap[clientEmail].totalSpent += bill.total || 0;
+          });
+          
+          const clients = Object.values(clientMap);
+          
+          // Sort by total spent
+          const sortedClients = [...clients].sort((a, b) => b.totalSpent - a.totalSpent);
+          
+          setClientData(sortedClients);
+          setTopClients(sortedClients.slice(0, 5).map(client => ({
+            name: client.email.split('@')[0], // Just use the part before @ for brevity
+            spent: client.totalSpent
+          })));
+        }
+      } catch (error) {
+        console.error('Error in clients data fetch:', error);
+      } finally {
+        setIsLoading(false);
+      }
+    };
+
+    if (userEmail) {
+      fetchClientData();
+
+      // Subscribe to real-time updates for bills
+      const billsChannel = supabase
+        .channel('clients-bills-updates')
+        .on(
+          'postgres_changes',
+          {
+            event: '*',
+            schema: 'public',
+            table: 'bills'
+          },
+          () => {
+            console.log('Bills changed, refreshing client data');
+            fetchClientData();
+          }
+        )
+        .subscribe();
+
+      return () => {
+        supabase.removeChannel(billsChannel);
+      };
+    }
+  }, [userEmail]);
+
+  if (isLoading) {
+    return (
+      <div className="flex items-center justify-center h-64">
+        <div className="text-gray-500 dark:text-gray-400">Loading client data...</div>
+      </div>
+    );
+  }
 
   return (
-    <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-      <SalesMetricCard 
-        title="Total Clients" 
-        value={totalClients}
-        subtitle="Active clients"
-      />
-      
-      <Card className="md:col-span-2 bg-white/90 dark:bg-gray-800/50 backdrop-blur-sm">
+    <div className="grid grid-cols-1 gap-6">
+      <Card className="bg-white/90 dark:bg-gray-800/50 backdrop-blur-sm">
         <CardHeader>
-          <CardTitle>Top Clients</CardTitle>
+          <CardTitle>Top Clients by Spending</CardTitle>
         </CardHeader>
-        <CardContent className="h-[300px]">
-          <ClientsBarChart topClients={topClients} isLoading={isLoading} />
+        <CardContent className="h-[400px]">
+          {topClients.length > 0 ? (
+            <ResponsiveContainer width="100%" height="100%">
+              <BarChart data={topClients}>
+                <CartesianGrid strokeDasharray="3 3" />
+                <XAxis dataKey="name" />
+                <YAxis />
+                <Tooltip 
+                  formatter={(value) => [`₹${value}`, 'Spent']}
+                  labelFormatter={(label) => `Client: ${label}`}
+                />
+                <Bar dataKey="spent" fill="#82ca9d" />
+              </BarChart>
+            </ResponsiveContainer>
+          ) : (
+            <div className="flex items-center justify-center h-full">
+              <div className="text-gray-500 dark:text-gray-400">No client data available</div>
+            </div>
+          )}
         </CardContent>
       </Card>
       
-      <Card className="md:col-span-3 bg-white/90 dark:bg-gray-800/50 backdrop-blur-sm">
+      <Card className="bg-white/90 dark:bg-gray-800/50 backdrop-blur-sm">
         <CardHeader>
-          <CardTitle>All Clients</CardTitle>
+          <CardTitle>Client Purchase Details</CardTitle>
         </CardHeader>
         <CardContent>
-          <ClientsTable clientsData={clientsData} isLoading={isLoading} />
+          <div className="overflow-x-auto">
+            <table className="w-full">
+              <thead>
+                <tr className="border-b">
+                  <th className="py-2 text-left">Client Email</th>
+                  <th className="py-2 text-right">Invoices</th>
+                  <th className="py-2 text-right">Total Spent</th>
+                </tr>
+              </thead>
+              <tbody>
+                {clientData.length > 0 ? (
+                  clientData.map((client) => (
+                    <tr key={client.email} className="border-b">
+                      <td className="py-2 text-left">{client.email}</td>
+                      <td className="py-2 text-right">{client.billCount}</td>
+                      <td className="py-2 text-right">₹{client.totalSpent.toLocaleString()}</td>
+                    </tr>
+                  ))
+                ) : (
+                  <tr>
+                    <td colSpan={3} className="py-4 text-center text-gray-500 dark:text-gray-400">
+                      No client data available
+                    </td>
+                  </tr>
+                )}
+              </tbody>
+            </table>
+          </div>
         </CardContent>
       </Card>
     </div>

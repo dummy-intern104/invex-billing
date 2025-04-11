@@ -27,13 +27,12 @@ const Billing = () => {
       return;
     }
     
-    // Fetch bills created by the current user
+    // Fetch all bills without filtering by customer email
     const fetchBillHistory = async () => {
       try {
         const { data, error } = await supabase
           .from('bills')
           .select('*')
-          .eq('created_by', user.id) // Filter by the user who created the bill
           .order('created_at', { ascending: false })
           .limit(10);
           
@@ -52,7 +51,7 @@ const Billing = () => {
     
     fetchBillHistory();
     
-    // Subscribe to realtime changes for bills created by the current user
+    // Subscribe to realtime changes in bills table
     const channel = supabase
       .channel('billing-page-changes')
       .on(
@@ -60,8 +59,7 @@ const Billing = () => {
         {
           event: 'INSERT',
           schema: 'public',
-          table: 'bills',
-          filter: `created_by=eq.${user.id}` // Only listen for changes to bills created by this user
+          table: 'bills'
         },
         () => {
           // Refresh bill history when a new bill is added
@@ -89,7 +87,6 @@ const Billing = () => {
       const { data } = await supabase
         .from('bills')
         .select('*')
-        .eq('created_by', user.id) // Filter by the user who created the bill
         .order('created_at', { ascending: false })
         .limit(10);
         
