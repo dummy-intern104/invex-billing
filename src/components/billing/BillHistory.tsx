@@ -10,12 +10,13 @@ interface BillHistoryProps {
   billHistory: BillHistoryItem[];
 }
 
-interface EnhancedBillHistoryItem extends BillHistoryItem {
+// Separate interface to avoid circular type reference
+interface BillHistoryItemWithItems extends BillHistoryItem {
   items?: BillItem[];
 }
 
 const BillHistory: React.FC<BillHistoryProps> = ({ billHistory: initialBillHistory }) => {
-  const [billHistory, setBillHistory] = useState<EnhancedBillHistoryItem[]>(initialBillHistory);
+  const [billHistory, setBillHistory] = useState<BillHistoryItemWithItems[]>(initialBillHistory as BillHistoryItemWithItems[]);
   const [isLoading, setIsLoading] = useState(true);
   const { user } = useAuth();
 

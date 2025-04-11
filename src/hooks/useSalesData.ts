@@ -84,34 +84,38 @@ export const useSalesData = (userEmail: string): UseSalesDataResult => {
 
       // Get user ID from email for realtime subscription
       const getUserIdForSubscription = async () => {
-        const { data } = await supabase
-          .from('profiles')
-          .select('id')
-          .eq('email', userEmail)
-          .single();
-        
-        if (data) {
-          // Subscribe to real-time updates for bills created by this user
-          const billsChannel = supabase
-            .channel('sales-dashboard-bills')
-            .on(
-              'postgres_changes',
-              {
-                event: '*', // Listen for all events (INSERT, UPDATE, DELETE)
-                schema: 'public',
-                table: 'bills',
-                filter: `created_by=eq.${data.id}` // Filter by bills created by this user
-              },
-              () => {
-                console.log('Bills table changed, refreshing sales data');
-                fetchSalesData();
-              }
-            )
-            .subscribe();
+        try {
+          const { data } = await supabase
+            .from('profiles')
+            .select('id')
+            .eq('email', userEmail)
+            .single();
+          
+          if (data) {
+            // Subscribe to real-time updates for bills created by this user
+            const billsChannel = supabase
+              .channel('sales-dashboard-bills')
+              .on(
+                'postgres_changes',
+                {
+                  event: '*', // Listen for all events (INSERT, UPDATE, DELETE)
+                  schema: 'public',
+                  table: 'bills',
+                  filter: `created_by=eq.${data.id}` // Filter by bills created by this user
+                },
+                () => {
+                  console.log('Bills table changed, refreshing sales data');
+                  fetchSalesData();
+                }
+              )
+              .subscribe();
 
-          return () => {
-            supabase.removeChannel(billsChannel);
-          };
+            return () => {
+              supabase.removeChannel(billsChannel);
+            };
+          }
+        } catch (error) {
+          console.error('Error setting up subscription:', error);
         }
       };
       
