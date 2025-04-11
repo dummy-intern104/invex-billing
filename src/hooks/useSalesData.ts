@@ -54,8 +54,7 @@ export const useSalesData = (userEmail: string): UseSalesDataResult => {
         const { data: billsData, error } = await supabase
           .from('bills')
           .select('*')
-          .eq('created_by', userId)
-          .order('created_at', { ascending: false });
+          .eq('created_by', userId);
 
         if (error) {
           console.error('Error fetching sales data:', error);
@@ -64,9 +63,12 @@ export const useSalesData = (userEmail: string): UseSalesDataResult => {
         }
 
         if (billsData) {
+          // Cast to BillData[] to ensure proper type handling
+          const typedBillsData = billsData as BillData[];
+          
           // Calculate metrics
-          const total = billsData.reduce((sum, bill) => sum + (bill.total || 0), 0);
-          const count = billsData.length;
+          const total = typedBillsData.reduce((sum, bill) => sum + (bill.total || 0), 0);
+          const count = typedBillsData.length;
           const avg = count > 0 ? total / count : 0;
 
           setTotalSales(total);
@@ -74,10 +76,12 @@ export const useSalesData = (userEmail: string): UseSalesDataResult => {
           setAverageSale(avg);
 
           // Process data for charts
-          const processedData = billsData.slice(0, 7).map(bill => ({
-            name: new Date(bill.created_at).toLocaleDateString(),
-            amount: bill.total || 0,
-          }));
+          const processedData: SalesDataItem[] = typedBillsData
+            .slice(0, 7)
+            .map(bill => ({
+              name: new Date(bill.created_at).toLocaleDateString(),
+              amount: bill.total || 0,
+            }));
 
           setSalesData(processedData);
         }
