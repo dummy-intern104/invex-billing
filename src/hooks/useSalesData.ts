@@ -26,14 +26,31 @@ export const useSalesData = (userEmail: string): UseSalesDataResult => {
     const fetchSalesData = async () => {
       setIsLoading(true);
       try {
-        // Get all bills data without filtering by customer_email
+        // Get user ID from email
+        const { data: userData, error: userError } = await supabase
+          .from('profiles')
+          .select('id')
+          .eq('email', userEmail)
+          .single();
+
+        if (userError) {
+          console.error('Error fetching user data:', userError);
+          setIsLoading(false);
+          return;
+        }
+
+        const userId = userData?.id;
+
+        // Get bills created by this user
         const { data: billsData, error } = await supabase
           .from('bills')
           .select('*')
+          .eq('created_by', userId)
           .order('created_at', { ascending: false });
 
         if (error) {
           console.error('Error fetching sales data:', error);
+          setIsLoading(false);
           return;
         }
 
@@ -65,26 +82,40 @@ export const useSalesData = (userEmail: string): UseSalesDataResult => {
     if (userEmail) {
       fetchSalesData();
 
-      // Subscribe to real-time updates for bills table
-      const billsChannel = supabase
-        .channel('sales-dashboard-bills')
-        .on(
-          'postgres_changes',
-          {
-            event: '*', // Listen for all events (INSERT, UPDATE, DELETE)
-            schema: 'public',
-            table: 'bills'
-          },
-          () => {
-            console.log('Bills table changed, refreshing sales data');
-            fetchSalesData();
-          }
-        )
-        .subscribe();
+      // Get user ID from email for realtime subscription
+      const getUserIdForSubscription = async () => {
+        const { data } = await supabase
+          .from('profiles')
+          .select('id')
+          .eq('email', userEmail)
+          .single();
+        
+        if (data) {
+          // Subscribe to real-time updates for bills created by this user
+          const billsChannel = supabase
+            .channel('sales-dashboard-bills')
+            .on(
+              'postgres_changes',
+              {
+                event: '*', // Listen for all events (INSERT, UPDATE, DELETE)
+                schema: 'public',
+                table: 'bills',
+                filter: `created_by=eq.${data.id}` // Filter by bills created by this user
+              },
+              () => {
+                console.log('Bills table changed, refreshing sales data');
+                fetchSalesData();
+              }
+            )
+            .subscribe();
 
-      return () => {
-        supabase.removeChannel(billsChannel);
+          return () => {
+            supabase.removeChannel(billsChannel);
+          };
+        }
       };
+      
+      getUserIdForSubscription();
     }
   }, [userEmail]);
 

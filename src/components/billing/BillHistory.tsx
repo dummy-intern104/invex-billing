@@ -23,13 +23,14 @@ const BillHistory: React.FC<BillHistoryProps> = ({ billHistory: initialBillHisto
     // Only proceed if we have a user
     if (!user) return;
     
-    // Fetch all bills without filtering by customer email
+    // Fetch bills created by the current user
     const fetchBillHistory = async () => {
       try {
         setIsLoading(true);
         const { data, error } = await supabase
           .from('bills')
           .select('*')
+          .eq('created_by', user.id) // Filter by the user who created the bill
           .order('created_at', { ascending: false });
           
         if (error) throw error;
@@ -59,7 +60,7 @@ const BillHistory: React.FC<BillHistoryProps> = ({ billHistory: initialBillHisto
 
     fetchBillHistory();
 
-    // Subscribe to realtime changes for bills
+    // Subscribe to realtime changes for bills created by this user
     const billsChannel = supabase
       .channel('bills-changes')
       .on(
@@ -67,7 +68,8 @@ const BillHistory: React.FC<BillHistoryProps> = ({ billHistory: initialBillHisto
         {
           event: '*', // Listen for all events (INSERT, UPDATE, DELETE)
           schema: 'public',
-          table: 'bills'
+          table: 'bills',
+          filter: `created_by=eq.${user.id}` // Only listen for changes to bills created by this user
         },
         () => {
           // Refresh bill history when any changes occur
