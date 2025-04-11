@@ -29,10 +29,11 @@ const ClientsDashboard: React.FC<ClientsDashboardProps> = ({ userEmail }) => {
     const fetchClientData = async () => {
       setIsLoading(true);
       try {
-        // Get all bills data without filtering by customer_email
+        // Get all bills data filtered by the current user
         const { data: billsData, error } = await supabase
           .from('bills')
-          .select('*');
+          .select('*')
+          .eq('created_by', userEmail);
 
         if (error) {
           console.error('Error fetching client data:', error);
@@ -86,7 +87,8 @@ const ClientsDashboard: React.FC<ClientsDashboardProps> = ({ userEmail }) => {
           {
             event: '*',
             schema: 'public',
-            table: 'bills'
+            table: 'bills',
+            filter: `created_by=eq.${userEmail}` // Filter for current user's bills only
           },
           () => {
             console.log('Bills changed, refreshing client data');

@@ -25,10 +25,11 @@ export const useProductData = (userEmail: string) => {
     const fetchProductData = async () => {
       setIsLoading(true);
       try {
-        // Get all bills without filtering by customer_email
+        // Get bills filtered by current user
         const { data: billsData, error: billsError } = await supabase
           .from('bills')
-          .select('id');
+          .select('id')
+          .eq('created_by', userEmail);
 
         if (billsError) {
           console.error('Error fetching bills data:', billsError);
@@ -104,7 +105,8 @@ export const useProductData = (userEmail: string) => {
           {
             event: '*',
             schema: 'public',
-            table: 'bills'
+            table: 'bills',
+            filter: `created_by=eq.${userEmail}` // Filter for current user's bills only
           },
           () => {
             console.log('Bills changed, refreshing product data');
