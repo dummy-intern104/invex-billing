@@ -23,14 +23,13 @@ const BillHistory: React.FC<BillHistoryProps> = ({ billHistory: initialBillHisto
     // Only proceed if we have a user
     if (!user) return;
     
-    // Fetch bill history from Supabase filtered by current user's email
+    // Fetch all bills without filtering by customer email
     const fetchBillHistory = async () => {
       try {
         setIsLoading(true);
         const { data, error } = await supabase
           .from('bills')
           .select('*')
-          .eq('customer_email', user.email)
           .order('created_at', { ascending: false });
           
         if (error) throw error;
@@ -68,8 +67,7 @@ const BillHistory: React.FC<BillHistoryProps> = ({ billHistory: initialBillHisto
         {
           event: '*', // Listen for all events (INSERT, UPDATE, DELETE)
           schema: 'public',
-          table: 'bills',
-          filter: `customer_email=eq.${user.email}`
+          table: 'bills'
         },
         () => {
           // Refresh bill history when any changes occur

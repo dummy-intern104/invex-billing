@@ -25,11 +25,10 @@ export const useProductData = (userEmail: string) => {
     const fetchProductData = async () => {
       setIsLoading(true);
       try {
-        // Get all bills for this user
+        // Get all bills without filtering by customer_email
         const { data: billsData, error: billsError } = await supabase
           .from('bills')
-          .select('id')
-          .eq('customer_email', userEmail);
+          .select('id');
 
         if (billsError) {
           console.error('Error fetching bills data:', billsError);
@@ -105,8 +104,7 @@ export const useProductData = (userEmail: string) => {
           {
             event: '*',
             schema: 'public',
-            table: 'bills',
-            filter: `customer_email=eq.${userEmail}`
+            table: 'bills'
           },
           () => {
             console.log('Bills changed, refreshing product data');

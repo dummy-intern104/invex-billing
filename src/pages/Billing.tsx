@@ -27,13 +27,12 @@ const Billing = () => {
       return;
     }
     
-    // Fetch bill history for the current user only
+    // Fetch all bills without filtering by customer email
     const fetchBillHistory = async () => {
       try {
         const { data, error } = await supabase
           .from('bills')
           .select('*')
-          .eq('customer_email', user.email)
           .order('created_at', { ascending: false })
           .limit(10);
           
@@ -60,8 +59,7 @@ const Billing = () => {
         {
           event: 'INSERT',
           schema: 'public',
-          table: 'bills',
-          filter: `customer_email=eq.${user.email}`
+          table: 'bills'
         },
         () => {
           // Refresh bill history when a new bill is added
@@ -89,7 +87,6 @@ const Billing = () => {
       const { data } = await supabase
         .from('bills')
         .select('*')
-        .eq('customer_email', user.email)
         .order('created_at', { ascending: false })
         .limit(10);
         

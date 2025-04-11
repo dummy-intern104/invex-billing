@@ -26,11 +26,10 @@ export const useSalesData = (userEmail: string): UseSalesDataResult => {
     const fetchSalesData = async () => {
       setIsLoading(true);
       try {
-        // Get sales data filtered by the current user's email
+        // Get all bills data without filtering by customer_email
         const { data: billsData, error } = await supabase
           .from('bills')
           .select('*')
-          .eq('customer_email', userEmail)
           .order('created_at', { ascending: false });
 
         if (error) {
@@ -74,8 +73,7 @@ export const useSalesData = (userEmail: string): UseSalesDataResult => {
           {
             event: '*', // Listen for all events (INSERT, UPDATE, DELETE)
             schema: 'public',
-            table: 'bills',
-            filter: `customer_email=eq.${userEmail}`
+            table: 'bills'
           },
           () => {
             console.log('Bills table changed, refreshing sales data');
