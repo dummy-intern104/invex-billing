@@ -114,52 +114,56 @@ export const useProductData = (userEmail: string) => {
 
       // Get user ID for realtime subscription
       const getUserIdForSubscription = async () => {
-        const { data } = await supabase
-          .from('profiles')
-          .select('id')
-          .eq('email', userEmail)
-          .single();
-        
-        if (data) {
-          // Subscribe to real-time updates for bills created by this user
-          const billsChannel = supabase
-            .channel('products-bills-updates')
-            .on(
-              'postgres_changes',
-              {
-                event: '*',
-                schema: 'public',
-                table: 'bills',
-                filter: `created_by=eq.${data.id}` // Filter by bills created by this user
-              },
-              () => {
-                console.log('Bills changed, refreshing product data');
-                fetchProductData();
-              }
-            )
-            .subscribe();
+        try {
+          const { data } = await supabase
+            .from('profiles')
+            .select('id')
+            .eq('email', userEmail)
+            .single();
+          
+          if (data) {
+            // Subscribe to real-time updates for bills created by this user
+            const billsChannel = supabase
+              .channel('products-bills-updates')
+              .on(
+                'postgres_changes',
+                {
+                  event: '*',
+                  schema: 'public',
+                  table: 'bills',
+                  filter: `created_by=eq.${data.id}` // Filter by bills created by this user
+                },
+                () => {
+                  console.log('Bills changed, refreshing product data');
+                  fetchProductData();
+                }
+              )
+              .subscribe();
 
-          // Subscribe to real-time updates for bill_items
-          const itemsChannel = supabase
-            .channel('products-items-updates')
-            .on(
-              'postgres_changes',
-              {
-                event: '*',
-                schema: 'public',
-                table: 'bill_items'
-              },
-              () => {
-                console.log('Bill items changed, refreshing product data');
-                fetchProductData();
-              }
-            )
-            .subscribe();
+            // Subscribe to real-time updates for bill_items
+            const itemsChannel = supabase
+              .channel('products-items-updates')
+              .on(
+                'postgres_changes',
+                {
+                  event: '*',
+                  schema: 'public',
+                  table: 'bill_items'
+                },
+                () => {
+                  console.log('Bill items changed, refreshing product data');
+                  fetchProductData();
+                }
+              )
+              .subscribe();
 
-          return () => {
-            supabase.removeChannel(billsChannel);
-            supabase.removeChannel(itemsChannel);
-          };
+            return () => {
+              supabase.removeChannel(billsChannel);
+              supabase.removeChannel(itemsChannel);
+            };
+          }
+        } catch (error) {
+          console.error('Error setting up subscription:', error);
         }
       };
       

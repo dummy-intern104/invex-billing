@@ -2,6 +2,7 @@
 import { useState, useEffect } from 'react';
 import { supabase } from "@/integrations/supabase/client";
 
+// Define simple, non-circular interfaces
 interface SalesDataItem {
   name: string;
   amount: number;
