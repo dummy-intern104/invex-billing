@@ -2,7 +2,7 @@
 import { useState, useEffect } from 'react';
 import { supabase } from "@/integrations/supabase/client";
 
-// Define simple interfaces without circular references
+// Define simple non-recursive interfaces
 interface SalesDataItem {
   name: string;
   amount: number;
@@ -14,6 +14,14 @@ interface UseSalesDataResult {
   averageSale: number;
   invoiceCount: number;
   isLoading: boolean;
+}
+
+// Interface for bill data from Supabase
+interface BillData {
+  id: string;
+  created_at: string;
+  total: number | null;
+  created_by: string;
 }
 
 export const useSalesData = (userEmail: string): UseSalesDataResult => {
