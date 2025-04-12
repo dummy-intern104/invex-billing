@@ -18,7 +18,7 @@ interface UseBillFormProps {
 
 export const useBillForm = ({ onSubmit }: UseBillFormProps) => {
   const { toast } = useToast();
-  const { user } = useAuth(); // Add the auth context to get the current user
+  const { user } = useAuth(); // Get the current user
   const [billNumber, setBillNumber] = useState("");
   const [email, setEmail] = useState("");
   const [isLoading, setIsLoading] = useState(false);
@@ -97,6 +97,8 @@ export const useBillForm = ({ onSubmit }: UseBillFormProps) => {
       // Calculate total
       const total = getTotal();
       
+      console.log("Creating bill with user email:", user.email);
+      
       // Insert bill into bills table with created_by field
       const { data: billData, error: billError } = await supabase
         .from('bills')
@@ -108,7 +110,10 @@ export const useBillForm = ({ onSubmit }: UseBillFormProps) => {
         })
         .select();
       
-      if (billError) throw billError;
+      if (billError) {
+        console.error('Bill insert error:', billError);
+        throw billError;
+      }
       
       // Insert bill items
       if (billData && billData.length > 0) {
@@ -133,7 +138,10 @@ export const useBillForm = ({ onSubmit }: UseBillFormProps) => {
           .from('bill_items')
           .insert(billItems);
         
-        if (itemsError) throw itemsError;
+        if (itemsError) {
+          console.error('Bill items insert error:', itemsError);
+          throw itemsError;
+        }
       }
       
       // Call the parent component's submit handler

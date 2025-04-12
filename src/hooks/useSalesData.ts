@@ -13,7 +13,7 @@ interface BillData {
   id: string;
   total: number;
   created_at: string;
-  created_by: string;
+  created_by: string; // Now this is a string (email) instead of UUID
   bill_number: string;
   customer_email: string;
   updated_at: string;
