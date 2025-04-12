@@ -1,8 +1,7 @@
-
 import React, { useEffect, useState } from "react";
 import { Card, CardContent } from "@/components/ui/card";
 import { Receipt, Loader2, Package } from "lucide-react";
-import { BillHistoryItem, BillItem } from "@/types/billing";
+import { BillHistoryItem } from "@/types/billing";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/context/AuthContext";
 
@@ -10,8 +9,18 @@ interface BillHistoryProps {
   billHistory: BillHistoryItem[];
 }
 
+interface BillItemData {
+  id: string;
+  bill_id: string;
+  product_id: string;
+  product_name: string;
+  quantity: number;
+  price: number;
+  created_at: string;
+}
+
 interface EnhancedBillHistoryItem extends BillHistoryItem {
-  items?: BillItem[];
+  items?: BillItemData[];
 }
 
 const BillHistory: React.FC<BillHistoryProps> = ({ billHistory: initialBillHistory }) => {
@@ -20,10 +29,8 @@ const BillHistory: React.FC<BillHistoryProps> = ({ billHistory: initialBillHisto
   const { user } = useAuth();
 
   useEffect(() => {
-    // Only proceed if we have a user
     if (!user) return;
     
-    // Fetch bills filtered by the current user
     const fetchBillHistory = async () => {
       try {
         setIsLoading(true);
@@ -36,7 +43,6 @@ const BillHistory: React.FC<BillHistoryProps> = ({ billHistory: initialBillHisto
         if (error) throw error;
         
         if (data) {
-          // Fetch bill items for each bill
           const enhancedBills = await Promise.all(data.map(async (bill) => {
             const { data: billItems } = await supabase
               .from('bill_items')
@@ -60,36 +66,32 @@ const BillHistory: React.FC<BillHistoryProps> = ({ billHistory: initialBillHisto
 
     fetchBillHistory();
 
-    // Subscribe to realtime changes for bills
     const billsChannel = supabase
       .channel('bills-changes')
       .on(
         'postgres_changes',
         {
-          event: '*', // Listen for all events (INSERT, UPDATE, DELETE)
+          event: '*',
           schema: 'public',
           table: 'bills',
-          filter: `created_by=eq.${user.email}` // Filter for current user's bills only
+          filter: `created_by=eq.${user.email}`
         },
         () => {
-          // Refresh bill history when any changes occur
           fetchBillHistory();
         }
       )
       .subscribe();
 
-    // Subscribe to realtime changes for bill_items
     const billItemsChannel = supabase
       .channel('bill-items-changes')
       .on(
         'postgres_changes',
         {
-          event: '*', // Listen for all events
+          event: '*',
           schema: 'public',
           table: 'bill_items'
         },
         () => {
-          // Refresh bill history when items change
           fetchBillHistory();
         }
       )
@@ -131,7 +133,6 @@ const BillHistory: React.FC<BillHistoryProps> = ({ billHistory: initialBillHisto
                   </div>
                 </div>
                 
-                {/* Display products in the bill */}
                 {bill.items && bill.items.length > 0 && (
                   <div className="mt-2 pt-2 border-t border-gray-100 dark:border-gray-800">
                     <p className="text-xs font-medium text-gray-500 dark:text-gray-400 mb-1">Products:</p>

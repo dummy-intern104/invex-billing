@@ -16,6 +16,26 @@ export interface TopProductData {
   sales: number;
 }
 
+// Define types matching the database schema
+interface BillData {
+  id: string;
+  total: number;
+  created_at: string;
+  created_by: string;
+  bill_number: string;
+  customer_email: string;
+}
+
+interface BillItemData {
+  id: string;
+  bill_id: string;
+  product_id: string;
+  product_name: string;
+  quantity: number;
+  price: number;
+  created_at: string;
+}
+
 export const useProductData = (userEmail: string) => {
   const [productData, setProductData] = useState<ProductData[]>([]);
   const [topProducts, setTopProducts] = useState<TopProductData[]>([]);
@@ -56,10 +76,13 @@ export const useProductData = (userEmail: string) => {
         }
 
         if (itemsData) {
+          // Safely cast the data
+          const typedItemsData = itemsData as unknown as BillItemData[];
+          
           // Process product data
           const productMap: Record<string, ProductData> = {};
           
-          itemsData.forEach(item => {
+          typedItemsData.forEach(item => {
             const productId = item.product_id || item.product_name;
             if (!productMap[productId]) {
               productMap[productId] = {

@@ -8,6 +8,7 @@ interface SalesDataItem {
   amount: number;
 }
 
+// Updated BillData interface to match what Supabase returns
 interface BillData {
   id: string;
   total: number;
@@ -15,6 +16,7 @@ interface BillData {
   created_by: string;
   bill_number: string;
   customer_email: string;
+  updated_at: string;
 }
 
 interface UseSalesDataResult {
@@ -49,8 +51,9 @@ export const useSalesData = (userEmail: string): UseSalesDataResult => {
         }
 
         if (billsData) {
-          // Explicitly cast to correct type
-          const typedBillsData = billsData as BillData[];
+          // Use a type assertion with 'as unknown as BillData[]'
+          // This provides a safer conversion path than direct casting
+          const typedBillsData = billsData as unknown as BillData[];
           
           // Calculate metrics
           const total = typedBillsData.reduce((sum, bill) => sum + (bill.total || 0), 0);
