@@ -10,6 +10,7 @@ import {
 import { useBillProduct } from "@/hooks/useBillProduct";
 import { useBillItems } from "@/hooks/useBillItems";
 import { useBillCalculation } from "@/hooks/useBillCalculation";
+import { useAuth } from "@/context/AuthContext";
 
 interface UseBillFormProps {
   onSubmit: (billNumber: string, email: string, items: BillItem[], total: number) => void;
@@ -17,6 +18,7 @@ interface UseBillFormProps {
 
 export const useBillForm = ({ onSubmit }: UseBillFormProps) => {
   const { toast } = useToast();
+  const { user } = useAuth(); // Add the auth context to get the current user
   const [billNumber, setBillNumber] = useState("");
   const [email, setEmail] = useState("");
   const [isLoading, setIsLoading] = useState(false);
@@ -80,19 +82,29 @@ export const useBillForm = ({ onSubmit }: UseBillFormProps) => {
   };
 
   const handleSubmit = async () => {
+    if (!user?.email) {
+      toast({
+        title: "Authentication error",
+        description: "You must be logged in to create bills",
+        variant: "destructive",
+      });
+      return;
+    }
+
     setIsLoading(true);
     
     try {
       // Calculate total
       const total = getTotal();
       
-      // Insert bill into bills table
+      // Insert bill into bills table with created_by field
       const { data: billData, error: billError } = await supabase
         .from('bills')
         .insert({
           bill_number: billNumber,
           customer_email: email,
-          total: total
+          total: total,
+          created_by: user.email // Add the created_by field with the current user's email
         })
         .select();
       
