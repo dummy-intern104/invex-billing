@@ -1,7 +1,7 @@
 
 import React from "react";
 import { Input } from "@/components/ui/input";
-import { BillItem, Product } from "@/types/billing";
+import { BillItem, Product } from "@/integrations/supabase/database.types";
 
 interface BillItemEntryProps {
   item: BillItem;

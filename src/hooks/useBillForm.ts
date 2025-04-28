@@ -1,11 +1,13 @@
+
 import { useState, useEffect } from "react";
-import { BillItem, Bill } from "@/integrations/supabase/database.types";
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
 import { useAuth } from "@/context/AuthContext";
 import { useBillProduct } from "@/hooks/useBillProduct";
 import { useBillItems } from "@/hooks/useBillItems";
 import { useBillCalculation } from "@/hooks/useBillCalculation";
+import { generateBillNumber, validateBillForm } from "@/utils/billCalculations";
+import { Bill, BillItem } from "@/integrations/supabase/database.types";
 
 interface UseBillFormProps {
   onSubmit: (billNumber: string, email: string, items: BillItem[], total: number) => void;
@@ -87,7 +89,7 @@ export const useBillForm = ({ onSubmit }: UseBillFormProps) => {
       
       console.log("Creating bill with user email:", user.email);
       
-      const billData: Bill['Insert'] = {
+      const billData = {
         bill_number: billNumber,
         customer_email: email,
         total: total,
@@ -111,7 +113,7 @@ export const useBillForm = ({ onSubmit }: UseBillFormProps) => {
         item.price > 0
       );
       
-      const billItems: BillItem['Insert'][] = validItems.map(item => ({
+      const billItems = validItems.map(item => ({
         bill_id: newBill.id,
         product_id: item.product_id === "manual" ? null : item.product_id,
         product_name: item.product_name,

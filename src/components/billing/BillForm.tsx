@@ -1,6 +1,6 @@
 
 import React from "react";
-import { BillItem } from "@/types/billing";
+import { BillItem } from "@/integrations/supabase/database.types";
 import BillFormInput from "./BillFormInput";
 import BillPrintPreview from "./BillPrintPreview";
 import { useBillForm } from "@/hooks/useBillForm";

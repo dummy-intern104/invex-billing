@@ -1,5 +1,5 @@
 
-import { BillItem } from "@/types/billing";
+import { BillItem } from "@/integrations/supabase/database.types";
 import { calculateSubtotal, calculateTax, calculateTotal } from "@/utils/billCalculations";
 
 export const useBillCalculation = (items: BillItem[]) => {
