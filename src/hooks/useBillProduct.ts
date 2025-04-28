@@ -1,6 +1,6 @@
 
 import { useState, useEffect } from "react";
-import { Product } from "@/types/billing";
+import { Product } from "@/integrations/supabase/database.types";
 import { supabase } from "@/integrations/supabase/client";
 
 export const useBillProduct = () => {
@@ -15,7 +15,7 @@ export const useBillProduct = () => {
           .select('*');
           
         if (error) throw error;
-        if (data) setProducts(data as unknown as Product[]);
+        if (data) setProducts(data);
       } catch (error) {
         console.error('Error fetching products:', error);
       }

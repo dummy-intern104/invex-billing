@@ -1,16 +1,11 @@
-
 import { useState, useEffect } from "react";
-import { BillItem } from "@/types/billing";
+import { BillItem, Bill } from "@/integrations/supabase/database.types";
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
-import {
-  generateBillNumber,
-  validateBillForm
-} from "@/utils/billCalculations";
+import { useAuth } from "@/context/AuthContext";
 import { useBillProduct } from "@/hooks/useBillProduct";
 import { useBillItems } from "@/hooks/useBillItems";
 import { useBillCalculation } from "@/hooks/useBillCalculation";
-import { useAuth } from "@/context/AuthContext";
 
 interface UseBillFormProps {
   onSubmit: (billNumber: string, email: string, items: BillItem[], total: number) => void;
@@ -18,7 +13,7 @@ interface UseBillFormProps {
 
 export const useBillForm = ({ onSubmit }: UseBillFormProps) => {
   const { toast } = useToast();
-  const { user } = useAuth(); // Get the current user
+  const { user } = useAuth();
   const [billNumber, setBillNumber] = useState("");
   const [email, setEmail] = useState("");
   const [isLoading, setIsLoading] = useState(false);
@@ -29,18 +24,14 @@ export const useBillForm = ({ onSubmit }: UseBillFormProps) => {
   const { items, handleItemChange: baseHandleItemChange, updateItemWithProduct, addNewItem, resetItems } = useBillItems();
   const { getSubtotal, getTax, getTotal } = useBillCalculation(items);
 
-  // Generate unique bill number on component mount
   useEffect(() => {
     setBillNumber(generateBillNumber());
   }, []);
 
-  // Wrap the handleItemChange to include product lookup
   const handleItemChange = (index: number, field: keyof BillItem, value: string | number) => {
     if (field === 'product_id' && typeof value === 'string' && value !== 'manual' && value !== '') {
-      // This is a product selection
       updateItemWithProduct(index, value, products);
     } else {
-      // Let the base handler manage the change
       baseHandleItemChange(index, field, value);
     }
   };
@@ -51,13 +42,11 @@ export const useBillForm = ({ onSubmit }: UseBillFormProps) => {
     if (status === 'paid') {
       handleSubmit();
     } else if (status === 'cancelled') {
-      // Reset form without saving
       toast({
         title: "Bill cancelled",
         description: "The bill has been cancelled",
       });
       
-      // Reset form
       setBillNumber(generateBillNumber());
       setEmail("");
       resetItems();
@@ -94,60 +83,53 @@ export const useBillForm = ({ onSubmit }: UseBillFormProps) => {
     setIsLoading(true);
     
     try {
-      // Calculate total
       const total = getTotal();
       
       console.log("Creating bill with user email:", user.email);
       
-      // Insert bill into bills table with created_by field
-      const { data: billData, error: billError } = await supabase
+      const billData: Bill['Insert'] = {
+        bill_number: billNumber,
+        customer_email: email,
+        total: total,
+        created_by: user.email
+      };
+      
+      const { data: newBill, error: billError } = await supabase
         .from('bills')
-        .insert({
-          bill_number: billNumber,
-          customer_email: email,
-          total: total,
-          created_by: user.email // Add the created_by field with the current user's email
-        })
-        .select();
+        .insert(billData)
+        .select()
+        .single();
       
       if (billError) {
         console.error('Bill insert error:', billError);
         throw billError;
       }
       
-      // Insert bill items
-      if (billData && billData.length > 0) {
-        const billId = billData[0].id;
-        
-        // Map items to include bill_id
-        const validItems = items.filter(item => 
-          item.product_name.trim() !== "" && 
-          item.quantity > 0 && 
-          item.price > 0
-        );
-        
-        const billItems = validItems.map(item => ({
-          bill_id: billId,
-          product_id: item.product_id === "manual" ? null : item.product_id,
-          product_name: item.product_name,
-          quantity: item.quantity,
-          price: item.price
-        }));
-        
-        const { error: itemsError } = await supabase
-          .from('bill_items')
-          .insert(billItems);
-        
-        if (itemsError) {
-          console.error('Bill items insert error:', itemsError);
-          throw itemsError;
-        }
+      const validItems = items.filter(item => 
+        item.product_name.trim() !== "" && 
+        item.quantity > 0 && 
+        item.price > 0
+      );
+      
+      const billItems: BillItem['Insert'][] = validItems.map(item => ({
+        bill_id: newBill.id,
+        product_id: item.product_id === "manual" ? null : item.product_id,
+        product_name: item.product_name,
+        quantity: item.quantity,
+        price: item.price
+      }));
+      
+      const { error: itemsError } = await supabase
+        .from('bill_items')
+        .insert(billItems);
+      
+      if (itemsError) {
+        console.error('Bill items insert error:', itemsError);
+        throw itemsError;
       }
       
-      // Call the parent component's submit handler
       onSubmit(billNumber, email, items, total);
       
-      // Reset form
       setBillNumber(generateBillNumber());
       setEmail("");
       resetItems();

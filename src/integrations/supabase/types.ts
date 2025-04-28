@@ -9,7 +9,158 @@ export type Json =
 export type Database = {
   public: {
     Tables: {
-      [_ in never]: never
+      bill_items: {
+        Row: {
+          bill_id: string
+          created_at: string | null
+          id: string
+          price: number
+          product_id: string | null
+          product_name: string
+          quantity: number
+        }
+        Insert: {
+          bill_id: string
+          created_at?: string | null
+          id?: string
+          price: number
+          product_id?: string | null
+          product_name: string
+          quantity: number
+        }
+        Update: {
+          bill_id?: string
+          created_at?: string | null
+          id?: string
+          price?: number
+          product_id?: string | null
+          product_name?: string
+          quantity?: number
+        }
+        Relationships: [
+          {
+            foreignKeyName: "bill_items_bill_id_fkey"
+            columns: ["bill_id"]
+            isOneToOne: false
+            referencedRelation: "bills"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      bills: {
+        Row: {
+          bill_number: string
+          created_at: string | null
+          created_by: string
+          customer_email: string
+          id: string
+          total: number
+          updated_at: string | null
+        }
+        Insert: {
+          bill_number: string
+          created_at?: string | null
+          created_by: string
+          customer_email: string
+          id?: string
+          total: number
+          updated_at?: string | null
+        }
+        Update: {
+          bill_number?: string
+          created_at?: string | null
+          created_by?: string
+          customer_email?: string
+          id?: string
+          total?: number
+          updated_at?: string | null
+        }
+        Relationships: []
+      }
+      company_profiles: {
+        Row: {
+          account_holder_name: string
+          account_number: string
+          address: string
+          bank_name: string
+          company_name: string
+          created_at: string | null
+          email: string
+          gstin: string
+          id: string
+          ifsc_code: string
+          logo_url: string | null
+          phone: string
+          signature_url: string | null
+          state: string
+          updated_at: string | null
+          user_id: string
+        }
+        Insert: {
+          account_holder_name: string
+          account_number: string
+          address: string
+          bank_name: string
+          company_name: string
+          created_at?: string | null
+          email: string
+          gstin: string
+          id?: string
+          ifsc_code: string
+          logo_url?: string | null
+          phone: string
+          signature_url?: string | null
+          state: string
+          updated_at?: string | null
+          user_id: string
+        }
+        Update: {
+          account_holder_name?: string
+          account_number?: string
+          address?: string
+          bank_name?: string
+          company_name?: string
+          created_at?: string | null
+          email?: string
+          gstin?: string
+          id?: string
+          ifsc_code?: string
+          logo_url?: string | null
+          phone?: string
+          signature_url?: string | null
+          state?: string
+          updated_at?: string | null
+          user_id?: string
+        }
+        Relationships: []
+      }
+      products: {
+        Row: {
+          created_at: string | null
+          id: string
+          name: string
+          price: number
+          product_id: string
+          stock: number
+        }
+        Insert: {
+          created_at?: string | null
+          id?: string
+          name: string
+          price: number
+          product_id: string
+          stock?: number
+        }
+        Update: {
+          created_at?: string | null
+          id?: string
+          name?: string
+          price?: number
+          product_id?: string
+          stock?: number
+        }
+        Relationships: []
+      }
     }
     Views: {
       [_ in never]: never
