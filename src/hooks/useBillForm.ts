@@ -7,7 +7,7 @@ import { useBillProduct } from "@/hooks/useBillProduct";
 import { useBillItems } from "@/hooks/useBillItems";
 import { useBillCalculation } from "@/hooks/useBillCalculation";
 import { generateBillNumber, validateBillForm } from "@/utils/billCalculations";
-import { Bill, BillItem } from "@/integrations/supabase/database.types";
+import { BillItem } from "@/types/billing";
 
 interface UseBillFormProps {
   onSubmit: (billNumber: string, email: string, items: BillItem[], total: number) => void;

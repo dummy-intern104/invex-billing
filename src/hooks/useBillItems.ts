@@ -1,6 +1,7 @@
 
 import { useState } from "react";
-import { BillItem, Product } from "@/integrations/supabase/database.types";
+import { BillItem } from "@/types/billing";
+import { Product } from "@/integrations/supabase/database.types";
 
 export const useBillItems = () => {
   const [items, setItems] = useState<BillItem[]>([

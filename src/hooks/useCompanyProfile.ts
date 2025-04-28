@@ -1,7 +1,7 @@
 
 import { useState, useEffect } from "react";
 import { supabase } from "@/integrations/supabase/client";
-import { CompanyProfile } from "@/integrations/supabase/database.types";
+import { CompanyProfile } from "@/types/company";
 import { useAuth } from "@/context/AuthContext";
 
 export const useCompanyProfile = () => {
@@ -32,7 +32,7 @@ export const useCompanyProfile = () => {
       
       if (!data) {
         // No profile found, create a default profile for this user
-        const defaultProfile: CompanyProfile['Insert'] = {
+        const defaultProfile = {
           company_name: "Marzelet Info Technology",
           address: "Ground floor Old no.33, New No 10 Andavar Street, Sivashakthi Nagar, Chennai",
           phone: "9629997391",
@@ -58,7 +58,7 @@ export const useCompanyProfile = () => {
         
         setProfile(defaultProfile as CompanyProfile);
       } else {
-        setProfile(data);
+        setProfile(data as CompanyProfile);
       }
     } catch (err) {
       console.error('Error fetching company profile:', err);

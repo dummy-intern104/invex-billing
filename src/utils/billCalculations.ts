@@ -1,5 +1,5 @@
 
-import { BillItem } from "@/integrations/supabase/database.types";
+import { BillItem } from "@/types/billing";
 
 // Tax rate (18% GST for India)
 export const TAX_RATE = 0.18;

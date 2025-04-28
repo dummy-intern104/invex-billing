@@ -1,7 +1,8 @@
 
 import React from "react";
 import { Button } from "@/components/ui/button";
-import { BillItem, Product } from "@/integrations/supabase/database.types";
+import { BillItem } from "@/types/billing";
+import { Product } from "@/integrations/supabase/database.types";
 import { Printer } from "lucide-react";
 import BillFormHeader from "./BillFormHeader";
 import BillItemsList from "./BillItemsList";
