@@ -15,7 +15,7 @@ export const useBillProduct = () => {
           .select('*');
           
         if (error) throw error;
-        if (data) setProducts(data);
+        if (data) setProducts(data as unknown as Product[]);
       } catch (error) {
         console.error('Error fetching products:', error);
       }

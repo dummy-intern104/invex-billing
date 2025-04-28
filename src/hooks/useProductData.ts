@@ -1,4 +1,3 @@
-
 import { useState, useEffect } from 'react';
 import { supabase } from "@/integrations/supabase/client";
 
@@ -21,7 +20,7 @@ interface BillData {
   id: string;
   total: number;
   created_at: string;
-  created_by: string; // Now this is a string (email) instead of UUID
+  created_by: string;
   bill_number: string;
   customer_email: string;
 }
@@ -29,7 +28,7 @@ interface BillData {
 interface BillItemData {
   id: string;
   bill_id: string;
-  product_id: string;
+  product_id: string | null;
   product_name: string;
   quantity: number;
   price: number;
@@ -76,13 +75,10 @@ export const useProductData = (userEmail: string) => {
         }
 
         if (itemsData) {
-          // Safely cast the data
-          const typedItemsData = itemsData as unknown as BillItemData[];
-          
           // Process product data
           const productMap: Record<string, ProductData> = {};
           
-          typedItemsData.forEach(item => {
+          itemsData.forEach(item => {
             const productId = item.product_id || item.product_name;
             if (!productMap[productId]) {
               productMap[productId] = {
@@ -129,7 +125,7 @@ export const useProductData = (userEmail: string) => {
             event: '*',
             schema: 'public',
             table: 'bills',
-            filter: `created_by=eq.${userEmail}` // Filter for current user's bills only
+            filter: `created_by=eq.${userEmail}`
           },
           () => {
             console.log('Bills changed, refreshing product data');

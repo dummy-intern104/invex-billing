@@ -58,7 +58,7 @@ export const useCompanyProfile = () => {
         
         setProfile(defaultProfile as CompanyProfile);
       } else {
-        setProfile(data as CompanyProfile);
+        setProfile(data as unknown as CompanyProfile);
       }
     } catch (err) {
       console.error('Error fetching company profile:', err);

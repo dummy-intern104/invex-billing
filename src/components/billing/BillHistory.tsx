@@ -1,3 +1,4 @@
+
 import React, { useEffect, useState } from "react";
 import { Card, CardContent } from "@/components/ui/card";
 import { Receipt, Loader2, Package } from "lucide-react";
@@ -12,7 +13,7 @@ interface BillHistoryProps {
 interface BillItemData {
   id: string;
   bill_id: string;
-  product_id: string;
+  product_id: string | null;
   product_name: string;
   quantity: number;
   price: number;
@@ -55,7 +56,7 @@ const BillHistory: React.FC<BillHistoryProps> = ({ billHistory: initialBillHisto
             };
           }));
           
-          setBillHistory(enhancedBills);
+          setBillHistory(enhancedBills as unknown as EnhancedBillHistoryItem[]);
         }
       } catch (error) {
         console.error('Error fetching bill history:', error);

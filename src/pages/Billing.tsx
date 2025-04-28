@@ -43,7 +43,7 @@ const Billing = () => {
         }
         
         if (data) {
-          setBillHistory(data as BillHistoryItem[]);
+          setBillHistory(data as unknown as BillHistoryItem[]);
         }
       } catch (error) {
         console.error("Error in bill history fetch:", error);
