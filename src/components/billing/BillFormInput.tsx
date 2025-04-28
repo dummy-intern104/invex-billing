@@ -18,6 +18,7 @@ interface BillFormInputProps {
   onEmailChange: (value: string) => void;
   onItemChange: (index: number, field: keyof BillItem, value: string | number) => void;
   addNewItem: () => void;
+  removeItem?: (index: number) => void;
   calculateSubtotal: () => number;
   calculateTax: () => number;
   calculateTotal: () => number;
@@ -33,6 +34,7 @@ const BillFormInput: React.FC<BillFormInputProps> = ({
   onEmailChange,
   onItemChange,
   addNewItem,
+  removeItem,
   calculateSubtotal,
   calculateTax,
   calculateTotal,
@@ -49,7 +51,8 @@ const BillFormInput: React.FC<BillFormInputProps> = ({
         items={items} 
         products={products} 
         onItemChange={onItemChange} 
-        addNewItem={addNewItem} 
+        addNewItem={addNewItem}
+        removeItem={removeItem}
       />
       
       <div className="grid grid-cols-12 gap-3 items-end">

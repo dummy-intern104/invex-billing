@@ -10,13 +10,15 @@ interface BillItemsListProps {
   products: Product[];
   onItemChange: (index: number, field: keyof BillItem, value: string | number) => void;
   addNewItem: () => void;
+  removeItem?: (index: number) => void;  // New optional prop
 }
 
 const BillItemsList: React.FC<BillItemsListProps> = ({
   items,
   products,
   onItemChange,
-  addNewItem
+  addNewItem,
+  removeItem
 }) => {
   return (
     <div className="space-y-4">
@@ -28,6 +30,7 @@ const BillItemsList: React.FC<BillItemsListProps> = ({
           index={index} 
           products={products} 
           onItemChange={onItemChange} 
+          removeItem={removeItem ? () => removeItem(index) : undefined}
         />
       ))}
       

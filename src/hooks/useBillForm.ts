@@ -11,9 +11,10 @@ import { BillItem } from "@/types/billing";
 
 interface UseBillFormProps {
   onSubmit: (billNumber: string, email: string, items: BillItem[], total: number) => void;
+  onBillCreated?: (newBill: any) => void; // Add a callback for when a bill is created
 }
 
-export const useBillForm = ({ onSubmit }: UseBillFormProps) => {
+export const useBillForm = ({ onSubmit, onBillCreated }: UseBillFormProps) => {
   const { toast } = useToast();
   const { user } = useAuth();
   const [billNumber, setBillNumber] = useState("");
@@ -23,7 +24,7 @@ export const useBillForm = ({ onSubmit }: UseBillFormProps) => {
   const [showPrintPreview, setShowPrintPreview] = useState(false);
   
   const { products } = useBillProduct();
-  const { items, handleItemChange: baseHandleItemChange, updateItemWithProduct, addNewItem, resetItems } = useBillItems();
+  const { items, handleItemChange: baseHandleItemChange, updateItemWithProduct, addNewItem, resetItems, removeItem } = useBillItems();
   const { getSubtotal, getTax, getTotal } = useBillCalculation(items);
 
   useEffect(() => {
@@ -87,8 +88,6 @@ export const useBillForm = ({ onSubmit }: UseBillFormProps) => {
     try {
       const total = getTotal();
       
-      console.log("Creating bill with user email:", user.email);
-      
       const billData = {
         bill_number: billNumber,
         customer_email: email,
@@ -130,6 +129,16 @@ export const useBillForm = ({ onSubmit }: UseBillFormProps) => {
         throw itemsError;
       }
       
+      // Call the new onBillCreated callback if it exists
+      if (onBillCreated) {
+        // Add items to the bill to match what BillHistory expects
+        const enhancedBill = {
+          ...newBill,
+          items: billItems
+        };
+        onBillCreated(enhancedBill);
+      }
+      
       onSubmit(billNumber, email, items, total);
       
       setBillNumber(generateBillNumber());
@@ -165,6 +174,7 @@ export const useBillForm = ({ onSubmit }: UseBillFormProps) => {
     setEmail,
     handleItemChange,
     addNewItem,
+    removeItem,
     handlePaymentStatus,
     handlePrintPreview,
     getSubtotal,

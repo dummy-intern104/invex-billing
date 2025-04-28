@@ -75,6 +75,11 @@ const Billing = () => {
     };
   }, [user, navigate]);
 
+  const handleBillCreated = (newBill: any) => {
+    // Add the new bill to the history immediately without waiting for the database update
+    setBillHistory(prevHistory => [newBill, ...prevHistory]);
+  };
+
   const handleBillSubmit = async (billNumber: string, email: string, items: BillItem[], total: number) => {
     toast({
       title: "Invoice generated",
@@ -83,19 +88,6 @@ const Billing = () => {
     
     // Close the bill form dialog
     setShowBillForm(false);
-    
-    // Force refresh bill history after a new bill is submitted
-    if (user) {
-      const { data } = await supabase
-        .from('bills')
-        .select('*')
-        .order('created_at', { ascending: false })
-        .limit(10);
-        
-      if (data) {
-        setBillHistory(data as BillHistoryItem[]);
-      }
-    }
   };
 
   const handleLogout = async () => {
@@ -132,7 +124,10 @@ const Billing = () => {
       <Dialog open={showBillForm} onOpenChange={setShowBillForm}>
         <DialogContent className="sm:max-w-[800px] max-h-[90vh] overflow-y-auto">
           <DialogTitle className="text-xl font-semibold mb-4">Create New Invoice</DialogTitle>
-          <BillForm onSubmit={handleBillSubmit} />
+          <BillForm 
+            onSubmit={handleBillSubmit} 
+            onBillCreated={handleBillCreated}
+          />
         </DialogContent>
       </Dialog>
       

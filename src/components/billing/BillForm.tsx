@@ -7,9 +7,10 @@ import { useBillForm } from "@/hooks/useBillForm";
 
 interface BillFormProps {
   onSubmit: (billNumber: string, email: string, items: BillItem[], total: number) => void;
+  onBillCreated?: (newBill: any) => void; // Add new prop
 }
 
-const BillForm: React.FC<BillFormProps> = ({ onSubmit }) => {
+const BillForm: React.FC<BillFormProps> = ({ onSubmit, onBillCreated }) => {
   const {
     billNumber,
     email,
@@ -21,13 +22,14 @@ const BillForm: React.FC<BillFormProps> = ({ onSubmit }) => {
     setEmail,
     handleItemChange,
     addNewItem,
+    removeItem,
     handlePaymentStatus,
     handlePrintPreview,
     getSubtotal,
     getTax,
     getTotal,
     setShowPrintPreview
-  } = useBillForm({ onSubmit });
+  } = useBillForm({ onSubmit, onBillCreated });
 
   return (
     <div>
@@ -53,6 +55,7 @@ const BillForm: React.FC<BillFormProps> = ({ onSubmit }) => {
           onEmailChange={setEmail}
           onItemChange={handleItemChange}
           addNewItem={addNewItem}
+          removeItem={removeItem}
           calculateSubtotal={getSubtotal}
           calculateTax={getTax}
           calculateTotal={getTotal}

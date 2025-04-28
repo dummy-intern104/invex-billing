@@ -29,6 +29,14 @@ const BillHistory: React.FC<BillHistoryProps> = ({ billHistory: initialBillHisto
   const [isLoading, setIsLoading] = useState(true);
   const { user } = useAuth();
 
+  // Update local state when prop changes (to handle immediate updates)
+  useEffect(() => {
+    setBillHistory(initialBillHistory as EnhancedBillHistoryItem[]);
+    if (initialBillHistory.length > 0) {
+      setIsLoading(false);
+    }
+  }, [initialBillHistory]);
+
   useEffect(() => {
     if (!user) return;
     
@@ -129,7 +137,7 @@ const BillHistory: React.FC<BillHistoryProps> = ({ billHistory: initialBillHisto
                   <div className="text-right">
                     <p className="font-medium text-gray-800 dark:text-gray-200">₹{parseFloat(bill.total.toString()).toFixed(2)}</p>
                     <p className="text-sm text-gray-600 dark:text-gray-400">
-                      {new Date(bill.created_at).toLocaleDateString()}
+                      {new Date(bill.created_at || new Date()).toLocaleDateString()}
                     </p>
                   </div>
                 </div>
