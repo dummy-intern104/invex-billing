@@ -19,7 +19,7 @@ export const calculateTotal = (items: BillItem[]): number => {
 // Store the last used invoice number in localStorage
 const getLastInvoiceNumber = (): number => {
   const lastNumber = localStorage.getItem('lastInvoiceNumber');
-  return lastNumber ? parseInt(lastNumber, 10) : 100000;
+  return lastNumber ? parseInt(lastNumber, 10) : 1000; // Starting from 1000 instead of 100000
 };
 
 // Update the localStorage with the new invoice number
