@@ -11,7 +11,7 @@ import { BillItem } from "@/types/billing";
 
 interface UseBillFormProps {
   onSubmit: (billNumber: string, email: string, items: BillItem[], total: number) => void;
-  onBillCreated?: (newBill: any) => void; // Add a callback for when a bill is created
+  onBillCreated?: (newBill: any) => void;
 }
 
 export const useBillForm = ({ onSubmit, onBillCreated }: UseBillFormProps) => {
@@ -27,6 +27,7 @@ export const useBillForm = ({ onSubmit, onBillCreated }: UseBillFormProps) => {
   const { items, handleItemChange: baseHandleItemChange, updateItemWithProduct, addNewItem, resetItems, removeItem } = useBillItems();
   const { getSubtotal, getTax, getTotal } = useBillCalculation(items);
 
+  // Generate initial bill number only once when component mounts
   useEffect(() => {
     setBillNumber(generateBillNumber());
   }, []);
@@ -50,7 +51,7 @@ export const useBillForm = ({ onSubmit, onBillCreated }: UseBillFormProps) => {
         description: "The bill has been cancelled",
       });
       
-      setBillNumber(generateBillNumber());
+      // Do NOT generate a new bill number when cancelling
       setEmail("");
       resetItems();
       setPaymentStatus('pending');
@@ -141,6 +142,7 @@ export const useBillForm = ({ onSubmit, onBillCreated }: UseBillFormProps) => {
       
       onSubmit(billNumber, email, items, total);
       
+      // Generate a new bill number ONLY after successful payment
       setBillNumber(generateBillNumber());
       setEmail("");
       resetItems();
