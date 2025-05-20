@@ -1,4 +1,3 @@
-
 import { useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -50,7 +49,7 @@ export function LoginForm() {
         // For employee role - only login (no signup)
         const success = await signIn(formData.email, formData.password);
         if (success) {
-          navigate("/billing");
+          navigate("/dashboard"); // Changed from "/billing" to "/dashboard"
         }
       }
     } catch (error) {
