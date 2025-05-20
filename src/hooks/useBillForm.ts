@@ -29,7 +29,8 @@ export const useBillForm = ({ onSubmit, onBillCreated }: UseBillFormProps) => {
 
   // Generate initial bill number only once when component mounts
   useEffect(() => {
-    setBillNumber(generateBillNumber());
+    // We don't generate a new bill number here anymore
+    // This will be set when the dialog opens in Billing.tsx
   }, []);
 
   const handleItemChange = (index: number, field: keyof BillItem, value: string | number) => {
@@ -143,7 +144,9 @@ export const useBillForm = ({ onSubmit, onBillCreated }: UseBillFormProps) => {
       onSubmit(billNumber, email, items, total);
       
       // Generate a new bill number ONLY after successful payment
-      setBillNumber(generateBillNumber());
+      // The invoice number is only changed AFTER a successful payment
+      const newBillNumber = generateBillNumber();
+      setBillNumber(newBillNumber);
       setEmail("");
       resetItems();
       setPaymentStatus('pending');

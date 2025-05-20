@@ -1,3 +1,4 @@
+
 import React, { useState, useEffect } from "react";
 import { useAuth } from "@/context/AuthContext";
 import { useNavigate } from "react-router-dom";
@@ -12,6 +13,7 @@ import MobileNavbar from "@/components/layout/MobileNavbar";
 import { Button } from "@/components/ui/button";
 import { PlusCircle } from "lucide-react";
 import { Dialog, DialogContent, DialogTitle } from "@/components/ui/dialog";
+import { generateBillNumber } from "@/utils/billCalculations";
 
 const Billing = () => {
   const { user, signOut } = useAuth();
@@ -19,6 +21,7 @@ const Billing = () => {
   const { toast } = useToast();
   const [billHistory, setBillHistory] = useState<BillHistoryItem[]>([]);
   const [showBillForm, setShowBillForm] = useState(false);
+  const [currentBillNumber, setCurrentBillNumber] = useState("");
   
   useEffect(() => {
     if (!user) {
@@ -74,6 +77,14 @@ const Billing = () => {
     };
   }, [user, navigate]);
 
+  // Handle opening the bill form dialog
+  const handleOpenBillForm = () => {
+    // Generate a new bill number when opening the dialog
+    const newBillNumber = generateBillNumber();
+    setCurrentBillNumber(newBillNumber);
+    setShowBillForm(true);
+  };
+
   const handleBillCreated = (newBill: any) => {
     // Add the new bill to the history immediately without waiting for the database update
     setBillHistory(prevHistory => [newBill, ...prevHistory]);
@@ -108,7 +119,7 @@ const Billing = () => {
             Recent Invoices
           </h2>
           <Button 
-            onClick={() => setShowBillForm(true)}
+            onClick={handleOpenBillForm}
             className="bg-purple-600 hover:bg-purple-700 text-white"
           >
             <PlusCircle className="mr-2 h-4 w-4" /> Add Invoice
@@ -126,6 +137,7 @@ const Billing = () => {
           <BillForm 
             onSubmit={handleBillSubmit} 
             onBillCreated={handleBillCreated}
+            initialBillNumber={currentBillNumber}
           />
         </DialogContent>
       </Dialog>

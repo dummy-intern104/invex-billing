@@ -19,7 +19,7 @@ export const calculateTotal = (items: BillItem[]): number => {
 // Store the last used invoice number in localStorage
 const getLastInvoiceNumber = (): number => {
   const lastNumber = localStorage.getItem('lastInvoiceNumber');
-  return lastNumber ? parseInt(lastNumber, 10) : 1000; // Starting from 1000 instead of 100000
+  return lastNumber ? parseInt(lastNumber, 10) : 0; // Starting from 0 instead of 1000
 };
 
 // Update the localStorage with the new invoice number
@@ -27,12 +27,13 @@ const setLastInvoiceNumber = (number: number): void => {
   localStorage.setItem('lastInvoiceNumber', number.toString());
 };
 
-// Generate a sequential invoice number
+// Generate a sequential invoice number with padding
 export const generateBillNumber = () => {
   const lastNumber = getLastInvoiceNumber();
   const newNumber = lastNumber + 1;
   setLastInvoiceNumber(newNumber);
-  return `MRZ-${newNumber}`;
+  // Format to have 4 digits with leading zeros
+  return `MRZ-${newNumber.toString().padStart(4, '0')}`;
 };
 
 export const formatCurrency = (amount: number): string => {

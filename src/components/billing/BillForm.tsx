@@ -7,10 +7,11 @@ import { useBillForm } from "@/hooks/useBillForm";
 
 interface BillFormProps {
   onSubmit: (billNumber: string, email: string, items: BillItem[], total: number) => void;
-  onBillCreated?: (newBill: any) => void; // Add new prop
+  onBillCreated?: (newBill: any) => void;
+  initialBillNumber?: string; // Add new prop
 }
 
-const BillForm: React.FC<BillFormProps> = ({ onSubmit, onBillCreated }) => {
+const BillForm: React.FC<BillFormProps> = ({ onSubmit, onBillCreated, initialBillNumber = "" }) => {
   const {
     billNumber,
     email,
@@ -30,6 +31,13 @@ const BillForm: React.FC<BillFormProps> = ({ onSubmit, onBillCreated }) => {
     getTotal,
     setShowPrintPreview
   } = useBillForm({ onSubmit, onBillCreated });
+
+  // Set the initial bill number received from props
+  React.useEffect(() => {
+    if (initialBillNumber) {
+      setBillNumber(initialBillNumber);
+    }
+  }, [initialBillNumber, setBillNumber]);
 
   return (
     <div>
