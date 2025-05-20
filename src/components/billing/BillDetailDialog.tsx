@@ -9,6 +9,7 @@ import {
 import { Loader2, Package, Receipt } from "lucide-react";
 import { BillHistoryItem } from "@/types/billing";
 import { supabase } from "@/integrations/supabase/client";
+import { formatCurrency } from "@/utils/billCalculations";
 
 interface BillDetailDialogProps {
   bill: BillHistoryItem | null;
@@ -103,7 +104,7 @@ const BillDetailDialog: React.FC<BillDetailDialogProps> = ({ bill, isOpen, onClo
                           <p className="text-sm text-gray-500">Qty: {item.quantity}</p>
                         </div>
                       </div>
-                      <p className="font-medium">₹{(item.price * item.quantity).toFixed(2)}</p>
+                      <p className="font-medium">{formatCurrency(item.price * item.quantity)}</p>
                     </div>
                   ))}
                 </div>
@@ -111,7 +112,7 @@ const BillDetailDialog: React.FC<BillDetailDialogProps> = ({ bill, isOpen, onClo
                 <div className="mt-4 pt-2 border-t">
                   <div className="flex justify-between font-medium">
                     <p>Total</p>
-                    <p>₹{parseFloat(bill.total.toString()).toFixed(2)}</p>
+                    <p>{formatCurrency(parseFloat(bill.total.toString()))}</p>
                   </div>
                 </div>
               </div>

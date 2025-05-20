@@ -16,10 +16,23 @@ export const calculateTotal = (items: BillItem[]): number => {
   return calculateSubtotal(items) + calculateTax(items);
 };
 
+// Store the last used invoice number in localStorage
+const getLastInvoiceNumber = (): number => {
+  const lastNumber = localStorage.getItem('lastInvoiceNumber');
+  return lastNumber ? parseInt(lastNumber, 10) : 100000;
+};
+
+// Update the localStorage with the new invoice number
+const setLastInvoiceNumber = (number: number): void => {
+  localStorage.setItem('lastInvoiceNumber', number.toString());
+};
+
+// Generate a sequential invoice number
 export const generateBillNumber = () => {
-  // Generate a 6 digit random number and prefix it with MRZ
-  const randomNumber = Math.floor(100000 + Math.random() * 900000);
-  return `MRZ-${randomNumber}`;
+  const lastNumber = getLastInvoiceNumber();
+  const newNumber = lastNumber + 1;
+  setLastInvoiceNumber(newNumber);
+  return `MRZ-${newNumber}`;
 };
 
 export const formatCurrency = (amount: number): string => {
