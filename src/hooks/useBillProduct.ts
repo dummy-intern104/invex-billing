@@ -22,6 +22,27 @@ export const useBillProduct = () => {
     };
 
     fetchProducts();
+    
+    // Subscribe to products table changes
+    const productsChannel = supabase
+      .channel('billing-products-updates')
+      .on(
+        'postgres_changes',
+        {
+          event: '*',
+          schema: 'public',
+          table: 'products'
+        },
+        () => {
+          console.log('Products changed, refreshing products list');
+          fetchProducts();
+        }
+      )
+      .subscribe();
+      
+    return () => {
+      supabase.removeChannel(productsChannel);
+    };
   }, []);
 
   return { products };

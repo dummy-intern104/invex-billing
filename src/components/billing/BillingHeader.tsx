@@ -2,7 +2,7 @@
 import React from "react";
 import { User } from "@supabase/supabase-js";
 import { Button } from "@/components/ui/button";
-import { LogOut, ShoppingBag, LayoutDashboard } from "lucide-react";
+import { LogOut, ShoppingBag, LayoutDashboard, Settings } from "lucide-react";
 import { Link } from "react-router-dom";
 
 interface BillingHeaderProps {
@@ -37,6 +37,13 @@ const BillingHeader: React.FC<BillingHeaderProps> = ({ user, onLogout }) => {
               >
                 <LayoutDashboard className="h-4 w-4" />
                 Dashboard
+              </Link>
+              <Link 
+                to="/company-profile" 
+                className="text-gray-600 hover:text-purple-600 dark:text-gray-300 dark:hover:text-purple-400 text-sm font-medium flex items-center gap-1"
+              >
+                <Settings className="h-4 w-4" />
+                Company Details
               </Link>
             </nav>
             

@@ -5,7 +5,6 @@ import BillActions from "./BillActions";
 import { format } from "date-fns";
 import { useCompanyProfile } from "@/hooks/useCompanyProfile";
 import { CompanyProfile } from "@/types/company";
-import BillCompanySettingsButton from "./print/BillCompanySettingsButton";
 import BillPrintContainer from "./print/BillPrintContainer";
 import { handlePrint } from "./print/BillPrintService";
 import { numberToWords } from "@/utils/numberToWords";
@@ -74,8 +73,6 @@ const BillPrintPreview: React.FC<BillPrintPreviewProps> = ({
   
   return (
     <div className="print-preview bg-white p-6 rounded-lg border border-gray-200 shadow-lg">
-      <BillCompanySettingsButton />
-      
       <div ref={printRef} className="relative">
         <BillPrintContainer
           companyData={companyData}

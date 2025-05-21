@@ -6,7 +6,7 @@ import {
   SheetContent, 
   SheetTrigger 
 } from "@/components/ui/sheet";
-import { Menu, FileText, LayoutDashboard } from "lucide-react";
+import { Menu, FileText, LayoutDashboard, Settings } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { useIsMobile } from "@/hooks/use-mobile";
 
@@ -46,6 +46,13 @@ const MobileNavbar: React.FC = () => {
               >
                 <LayoutDashboard className="h-5 w-5 text-purple-600 dark:text-purple-400" />
                 Dashboard
+              </Link>
+              <Link 
+                to="/company-profile" 
+                className="flex items-center gap-3 px-3 py-3 text-sm rounded-md hover:bg-purple-100 dark:hover:bg-purple-900/30 text-gray-700 dark:text-gray-300"
+              >
+                <Settings className="h-5 w-5 text-purple-600 dark:text-purple-400" />
+                Company Details
               </Link>
             </div>
           </nav>

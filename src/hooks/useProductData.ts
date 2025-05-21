@@ -1,4 +1,5 @@
-import { useState, useEffect } from 'react';
+
+import { useState, useEffect, useCallback } from 'react';
 import { supabase } from "@/integrations/supabase/client";
 
 // Define proper interfaces for our data
@@ -40,79 +41,79 @@ export const useProductData = (userEmail: string) => {
   const [topProducts, setTopProducts] = useState<TopProductData[]>([]);
   const [isLoading, setIsLoading] = useState(true);
 
-  useEffect(() => {
-    const fetchProductData = async () => {
-      setIsLoading(true);
-      try {
-        // Get bills filtered by current user
-        const { data: billsData, error: billsError } = await supabase
-          .from('bills')
-          .select('id')
-          .eq('created_by', userEmail);
+  const fetchProductData = useCallback(async () => {
+    setIsLoading(true);
+    try {
+      // Get bills filtered by current user
+      const { data: billsData, error: billsError } = await supabase
+        .from('bills')
+        .select('id')
+        .eq('created_by', userEmail);
 
-        if (billsError) {
-          console.error('Error fetching bills data:', billsError);
-          return;
-        }
-
-        if (!billsData || billsData.length === 0) {
-          setIsLoading(false);
-          return;
-        }
-
-        // Get bill IDs
-        const billIds = billsData.map(bill => bill.id);
-
-        // Get bill items for these bills
-        const { data: itemsData, error: itemsError } = await supabase
-          .from('bill_items')
-          .select('*')
-          .in('bill_id', billIds);
-
-        if (itemsError) {
-          console.error('Error fetching bill items:', itemsError);
-          return;
-        }
-
-        if (itemsData) {
-          // Process product data
-          const productMap: Record<string, ProductData> = {};
-          
-          itemsData.forEach(item => {
-            const productId = item.product_id || item.product_name;
-            if (!productMap[productId]) {
-              productMap[productId] = {
-                id: productId,
-                name: item.product_name,
-                totalQuantity: 0,
-                totalSales: 0,
-                count: 0
-              };
-            }
-            
-            productMap[productId].totalQuantity += item.quantity || 0;
-            productMap[productId].totalSales += (item.price * item.quantity) || 0;
-            productMap[productId].count += 1;
-          });
-          
-          const products = Object.values(productMap);
-          
-          // Sort by total sales
-          const sortedProducts = [...products].sort((a, b) => b.totalSales - a.totalSales);
-          
-          setProductData(sortedProducts);
-          setTopProducts(sortedProducts.slice(0, 5).map(product => ({
-            name: product.name,
-            sales: product.totalSales
-          })));
-        }
-      } catch (error) {
-        console.error('Error in products data fetch:', error);
-      } finally {
-        setIsLoading(false);
+      if (billsError) {
+        console.error('Error fetching bills data:', billsError);
+        return;
       }
-    };
 
+      if (!billsData || billsData.length === 0) {
+        setIsLoading(false);
+        return;
+      }
+
+      // Get bill IDs
+      const billIds = billsData.map(bill => bill.id);
+
+      // Get bill items for these bills
+      const { data: itemsData, error: itemsError } = await supabase
+        .from('bill_items')
+        .select('*')
+        .in('bill_id', billIds);
+
+      if (itemsError) {
+        console.error('Error fetching bill items:', itemsError);
+        return;
+      }
+
+      if (itemsData) {
+        // Process product data
+        const productMap: Record<string, ProductData> = {};
+        
+        itemsData.forEach(item => {
+          const productId = item.product_id || item.product_name;
+          if (!productMap[productId]) {
+            productMap[productId] = {
+              id: productId,
+              name: item.product_name,
+              totalQuantity: 0,
+              totalSales: 0,
+              count: 0
+            };
+          }
+          
+          productMap[productId].totalQuantity += item.quantity || 0;
+          productMap[productId].totalSales += (item.price * item.quantity) || 0;
+          productMap[productId].count += 1;
+        });
+        
+        const products = Object.values(productMap);
+        
+        // Sort by total sales
+        const sortedProducts = [...products].sort((a, b) => b.totalSales - a.totalSales);
+        
+        setProductData(sortedProducts);
+        setTopProducts(sortedProducts.slice(0, 5).map(product => ({
+          name: product.name,
+          sales: product.totalSales
+        })));
+      }
+    } catch (error) {
+      console.error('Error in products data fetch:', error);
+    } finally {
+      setIsLoading(false);
+    }
+  }, [userEmail]);
+
+  useEffect(() => {
     if (userEmail) {
       fetchProductData();
 
@@ -150,13 +151,36 @@ export const useProductData = (userEmail: string) => {
           }
         )
         .subscribe();
+        
+      // Subscribe to real-time updates for products table
+      const productsChannel = supabase
+        .channel('products-updates')
+        .on(
+          'postgres_changes',
+          {
+            event: '*',
+            schema: 'public',
+            table: 'products'
+          },
+          () => {
+            console.log('Products changed, refreshing product data');
+            fetchProductData();
+          }
+        )
+        .subscribe();
 
       return () => {
         supabase.removeChannel(billsChannel);
         supabase.removeChannel(itemsChannel);
+        supabase.removeChannel(productsChannel);
       };
     }
-  }, [userEmail]);
+  }, [userEmail, fetchProductData]);
 
-  return { productData, topProducts, isLoading };
+  return { 
+    productData, 
+    topProducts, 
+    isLoading,
+    refetch: fetchProductData
+  };
 };
