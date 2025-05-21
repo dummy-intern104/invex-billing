@@ -14,6 +14,8 @@ interface UseBillFormProps {
   onBillCreated?: (newBill: any) => void;
 }
 
+export type PaymentMode = 'UPI' | 'Card' | 'Cash' | 'Unpaid';
+
 export const useBillForm = ({ onSubmit, onBillCreated }: UseBillFormProps) => {
   const { toast } = useToast();
   const { user } = useAuth();
@@ -21,6 +23,7 @@ export const useBillForm = ({ onSubmit, onBillCreated }: UseBillFormProps) => {
   const [email, setEmail] = useState("");
   const [isLoading, setIsLoading] = useState(false);
   const [paymentStatus, setPaymentStatus] = useState<'pending' | 'paid' | 'cancelled'>('pending');
+  const [paymentMode, setPaymentMode] = useState<PaymentMode>('Unpaid');
   const [showPrintPreview, setShowPrintPreview] = useState(false);
   
   const { products } = useBillProduct();
@@ -94,7 +97,9 @@ export const useBillForm = ({ onSubmit, onBillCreated }: UseBillFormProps) => {
         bill_number: billNumber,
         customer_email: email,
         total: total,
-        created_by: user.email
+        created_by: user.email,
+        payment_mode: paymentMode,
+        payment_date: paymentMode !== 'Unpaid' ? new Date().toISOString() : null
       };
       
       const { data: newBill, error: billError } = await supabase
@@ -150,6 +155,7 @@ export const useBillForm = ({ onSubmit, onBillCreated }: UseBillFormProps) => {
       setEmail("");
       resetItems();
       setPaymentStatus('pending');
+      setPaymentMode('Unpaid');
       setShowPrintPreview(false);
       
       toast({
@@ -175,8 +181,10 @@ export const useBillForm = ({ onSubmit, onBillCreated }: UseBillFormProps) => {
     products,
     isLoading,
     showPrintPreview,
+    paymentMode,
     setBillNumber,
     setEmail,
+    setPaymentMode,
     handleItemChange,
     addNewItem,
     removeItem,

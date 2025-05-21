@@ -6,7 +6,6 @@ import { useToast } from "@/hooks/use-toast";
 export interface ProductFormData {
   name: string;
   price: number;
-  description?: string;
   stock?: number;
   hsn_code?: string;
 }

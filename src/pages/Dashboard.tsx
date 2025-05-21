@@ -1,3 +1,4 @@
+
 import React, { useState, useEffect } from "react";
 import { useAuth } from "@/context/AuthContext";
 import { useNavigate } from "react-router-dom";
@@ -7,8 +8,8 @@ import BillingHeader from "@/components/billing/BillingHeader";
 import SalesDashboard from "@/components/dashboard/SalesDashboard";
 import ProductsDashboard from "@/components/dashboard/ProductsDashboard";
 import ClientsDashboard from "@/components/dashboard/ClientsDashboard";
+import PaymentsDashboard from "@/components/dashboard/PaymentsDashboard";
 import MobileNavbar from "@/components/layout/MobileNavbar";
-import { supabase } from "@/integrations/supabase/client";
 
 const Dashboard = () => {
   const { user, signOut } = useAuth();
@@ -43,6 +44,7 @@ const Dashboard = () => {
             <TabsTrigger value="sales">Sales Overview</TabsTrigger>
             <TabsTrigger value="products">Products</TabsTrigger>
             <TabsTrigger value="clients">Clients</TabsTrigger>
+            <TabsTrigger value="payments">Payments</TabsTrigger>
           </TabsList>
           
           <TabsContent value="sales" className="space-y-6">
@@ -55,6 +57,10 @@ const Dashboard = () => {
           
           <TabsContent value="clients" className="space-y-6">
             <ClientsDashboard userEmail={user.email} />
+          </TabsContent>
+
+          <TabsContent value="payments" className="space-y-6">
+            <PaymentsDashboard userEmail={user.email} />
           </TabsContent>
         </Tabs>
       </main>

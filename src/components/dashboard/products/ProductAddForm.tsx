@@ -12,7 +12,6 @@ import {
 } from "@/components/ui/dialog";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { Textarea } from "@/components/ui/textarea";
 import { useProductManager, ProductFormData } from "@/hooks/useProductManager";
 import { useState } from "react";
 import { Plus } from "lucide-react";
@@ -27,7 +26,6 @@ const ProductAddForm: React.FC<ProductAddFormProps> = ({ onProductAdded }) => {
   const [formData, setFormData] = useState<ProductFormData>({
     name: "",
     price: 0,
-    description: "",
     stock: 0,
     hsn_code: ""
   });
@@ -52,7 +50,6 @@ const ProductAddForm: React.FC<ProductAddFormProps> = ({ onProductAdded }) => {
       setFormData({
         name: "",
         price: 0,
-        description: "",
         stock: 0,
         hsn_code: ""
       });
@@ -131,19 +128,6 @@ const ProductAddForm: React.FC<ProductAddFormProps> = ({ onProductAdded }) => {
                 value={formData.hsn_code}
                 onChange={handleChange}
                 className="col-span-3"
-              />
-            </div>
-            <div className="grid grid-cols-4 items-center gap-4">
-              <Label htmlFor="description" className="text-right">
-                Description
-              </Label>
-              <Textarea
-                id="description"
-                name="description"
-                value={formData.description}
-                onChange={handleChange}
-                className="col-span-3"
-                rows={3}
               />
             </div>
           </div>

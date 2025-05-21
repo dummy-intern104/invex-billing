@@ -8,14 +8,18 @@ import BillFormHeader from "./BillFormHeader";
 import BillItemsList from "./BillItemsList";
 import BillCustomerInfo from "./BillCustomerInfo";
 import BillSummary from "./BillSummary";
+import PaymentModeSelector from "./PaymentModeSelector";
+import { PaymentMode } from "@/hooks/useBillForm";
 
 interface BillFormInputProps {
   billNumber: string;
   email: string;
   items: BillItem[];
   products: Product[];
+  paymentMode: PaymentMode;
   onBillNumberChange: (value: string) => void;
   onEmailChange: (value: string) => void;
+  onPaymentModeChange: (mode: PaymentMode) => void;
   onItemChange: (index: number, field: keyof BillItem, value: string | number) => void;
   addNewItem: () => void;
   removeItem?: (index: number) => void;
@@ -30,8 +34,10 @@ const BillFormInput: React.FC<BillFormInputProps> = ({
   email,
   items,
   products,
+  paymentMode,
   onBillNumberChange,
   onEmailChange,
+  onPaymentModeChange,
   onItemChange,
   addNewItem,
   removeItem,
@@ -55,14 +61,19 @@ const BillFormInput: React.FC<BillFormInputProps> = ({
         removeItem={removeItem}
       />
       
-      <div className="grid grid-cols-12 gap-3 items-end">
-        <div className="col-span-8">
+      <div className="grid grid-cols-12 gap-3 items-start">
+        <div className="col-span-12 md:col-span-8 space-y-4">
           <BillCustomerInfo 
             email={email}
             onEmailChange={onEmailChange}
           />
+          
+          <PaymentModeSelector
+            paymentMode={paymentMode}
+            onPaymentModeChange={onPaymentModeChange}
+          />
         </div>
-        <div className="col-span-4">
+        <div className="col-span-12 md:col-span-4">
           <BillSummary 
             subtotal={calculateSubtotal()} 
             tax={calculateTax()} 
