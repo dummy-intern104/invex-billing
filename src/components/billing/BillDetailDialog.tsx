@@ -1,15 +1,19 @@
 
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useRef } from "react";
 import { 
   Dialog, 
   DialogContent, 
   DialogHeader, 
-  DialogTitle 
+  DialogTitle,
+  DialogFooter
 } from "@/components/ui/dialog";
-import { Loader2, Package, Receipt } from "lucide-react";
+import { Loader2, Package, Receipt, Printer } from "lucide-react";
 import { BillHistoryItem } from "@/types/billing";
 import { supabase } from "@/integrations/supabase/client";
 import { formatCurrency } from "@/utils/billCalculations";
+import { Button } from "@/components/ui/button";
+import { useCompanyProfile } from "@/hooks/useCompanyProfile";
+import { format } from "date-fns";
 
 interface BillDetailDialogProps {
   bill: BillHistoryItem | null;
@@ -30,6 +34,8 @@ interface BillItemData {
 const BillDetailDialog: React.FC<BillDetailDialogProps> = ({ bill, isOpen, onClose }) => {
   const [billItems, setBillItems] = useState<BillItemData[]>([]);
   const [isLoading, setIsLoading] = useState(true);
+  const { profile } = useCompanyProfile();
+  const printableContentRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
     const fetchBillItems = async () => {
@@ -59,7 +65,278 @@ const BillDetailDialog: React.FC<BillDetailDialogProps> = ({ bill, isOpen, onClo
     }
   }, [bill, isOpen]);
 
+  const handlePrint = () => {
+    if (!bill || !profile) return;
+
+    const printContent = document.createElement('div');
+    printContent.innerHTML = printableContentRef.current?.innerHTML || '';
+    
+    const windowFeatures = 'left=0,top=0,width=800,height=600';
+    const printWindow = window.open('', '_blank', windowFeatures);
+    
+    if (printWindow) {
+      const currentDate = format(new Date(), "dd-MM-yyyy");
+      
+      printWindow.document.write(`
+        <html>
+          <head>
+            <title>Reprint Invoice #${bill.bill_number}</title>
+            <style>
+              @page {
+                size: A4;
+                margin: 10mm;
+              }
+              body {
+                font-family: Arial, sans-serif;
+                padding: 10px;
+                margin: 0;
+                font-size: 12px;
+              }
+              .invoice-container {
+                max-width: 100%;
+                margin: 0 auto;
+                border: 1px solid #000;
+                padding: 10px;
+              }
+              .header {
+                display: flex;
+                justify-content: space-between;
+                align-items: center;
+                margin-bottom: 5px;
+              }
+              .logo {
+                width: 60px;
+                height: 60px;
+              }
+              .company-details {
+                text-align: right;
+                font-size: 10px;
+              }
+              .invoice-title {
+                text-align: center;
+                font-weight: bold;
+                margin: 5px 0;
+                font-size: 14px;
+                position: relative;
+              }
+              .reprinted-stamp {
+                position: absolute;
+                top: 50%;
+                left: 50%;
+                transform: translate(-50%, -50%) rotate(-30deg);
+                color: rgba(255, 0, 0, 0.5);
+                font-size: 24px;
+                font-weight: bold;
+                border: 2px solid rgba(255, 0, 0, 0.5);
+                padding: 5px 10px;
+                pointer-events: none;
+              }
+              h2 {
+                margin-bottom: 5px;
+                font-size: 14px;
+              }
+              h3 {
+                margin-bottom: 3px;
+                font-size: 12px;
+              }
+              table {
+                width: 100%;
+                border-collapse: collapse;
+                margin: 10px 0;
+                font-size: 10px;
+              }
+              th, td {
+                padding: 3px 5px;
+                text-align: left;
+                border: 1px solid #ddd;
+                font-size: 10px;
+              }
+              th {
+                background-color: #4A7ADB;
+                color: white;
+              }
+              .text-right {
+                text-align: right;
+              }
+              .text-center {
+                text-align: center;
+              }
+              .section-header {
+                background-color: #4A7ADB;
+                color: white;
+                padding: 3px 5px;
+                margin: 5px 0;
+                font-weight: bold;
+              }
+              .bill-sections {
+                display: flex;
+                justify-content: space-between;
+              }
+              .bill-to {
+                width: 48%;
+              }
+              .invoice-details {
+                width: 48%;
+                text-align: right;
+              }
+              .separator {
+                border-top: 1px solid #000;
+                margin: 10px 0;
+              }
+              .footer {
+                display: flex;
+                justify-content: space-between;
+                margin-top: 15px;
+              }
+              .bank-details, .signature {
+                width: 48%;
+              }
+              .terms {
+                margin: 10px 0;
+              }
+              .amount-table {
+                width: 100%;
+              }
+              .amount-table table {
+                border-collapse: collapse;
+                width: 100%;
+              }
+              .amount-table td {
+                padding: 3px;
+                border: 1px solid #ddd;
+              }
+              .signature-image {
+                max-width: 100px;
+                max-height: 40px;
+              }
+              p {
+                margin: 2px 0;
+              }
+            </style>
+          </head>
+          <body>
+            <div class="invoice-container">
+              <!-- Company Header -->
+              <div class="header">
+                <div class="logo">
+                  ${profile.logo_url ? `<img src="${profile.logo_url}" alt="Company Logo" width="60" height="60" />` : 
+                   `<div style="width:60px;height:60px;border:1px dashed #ccc;display:flex;align-items:center;justify-content:center;">
+                      <span style="font-size:10px;color:#999;">No Logo</span>
+                    </div>`}
+                </div>
+                <div class="company-details">
+                  <h2>${profile.company_name}</h2>
+                  <p>${profile.address}</p>
+                  <p>Phone no.: ${profile.phone} Email: ${profile.email}</p>
+                  <p>GSTIN: ${profile.gstin}, State: ${profile.state}</p>
+                </div>
+              </div>
+              
+              <div class="separator"></div>
+              
+              <!-- Invoice Title -->
+              <div class="invoice-title">
+                <h2>Tax Invoice</h2>
+                <div class="reprinted-stamp">REPRINTED</div>
+              </div>
+              
+              <!-- Customer & Invoice Info -->
+              <div class="bill-sections">
+                <div class="bill-to">
+                  <h3>Bill To</h3>
+                  <p>${bill.customer_email?.split('@')[0] || 'Customer'}</p>
+                  <p>${bill.customer_email}</p>
+                  <p>Contact No.: N/A</p>
+                  <p>GSTIN: N/A</p>
+                  <p>State: ${profile.state?.split('-')[1] || 'Tamil Nadu'}</p>
+                </div>
+                <div class="invoice-details">
+                  <h3>Invoice Details</h3>
+                  <p>Invoice No.: ${bill.bill_number}</p>
+                  <p>Original Date: ${new Date(bill.created_at).toLocaleDateString()}</p>
+                  <p>Reprint Date: ${currentDate}</p>
+                  <p>Place of supply: ${profile.state || '33-Tamil Nadu'}</p>
+                </div>
+              </div>
+              
+              <!-- Items Table -->
+              <table>
+                <thead>
+                  <tr>
+                    <th style="width:10px;">#</th>
+                    <th>Item name</th>
+                    <th style="width:20px;text-align:center;">Qty</th>
+                    <th style="width:24px;text-align:right;">Price/Unit</th>
+                    <th style="width:24px;text-align:right;">Amount</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  ${billItems.map((item, index) => `
+                    <tr>
+                      <td style="text-align:center;">${index + 1}</td>
+                      <td>${item.product_name}</td>
+                      <td style="text-align:center;">${item.quantity}</td>
+                      <td style="text-align:right;">₹ ${item.price.toFixed(2)}</td>
+                      <td style="text-align:right;">₹ ${(item.quantity * item.price).toFixed(2)}</td>
+                    </tr>
+                  `).join('')}
+                  <tr>
+                    <td colspan="4" style="text-align:right;font-weight:bold;">Total</td>
+                    <td style="text-align:right;font-weight:bold;">₹ ${parseFloat(bill.total.toString()).toFixed(2)}</td>
+                  </tr>
+                </tbody>
+              </table>
+              
+              <!-- Terms -->
+              <div class="terms">
+                <div class="section-header">Terms and Conditions</div>
+                <p style="padding:5px;border:1px solid #ddd;">Thanks for doing business with us!</p>
+              </div>
+              
+              <!-- Bank Details -->
+              <div class="bank-details">
+                <div class="section-header">Bank Details</div>
+                <div style="padding:5px;border:1px solid #ddd;">
+                  <p>Name: ${profile.bank_name}</p>
+                  <p>Account No.: ${profile.account_number}</p>
+                  <p>IFSC code: ${profile.ifsc_code}</p>
+                  <p>Account holder's name: ${profile.account_holder_name}</p>
+                </div>
+              </div>
+              
+              <!-- Footer -->
+              <div class="footer">
+                <div style="width:50%;">
+                  <p>For: ${profile.company_name}</p>
+                </div>
+                <div style="width:50%;text-align:right;">
+                  <div style="margin-top:20px;">
+                    ${profile.signature_url ? 
+                      `<img src="${profile.signature_url}" alt="Authorized Signature" style="max-width:100px;max-height:40px;" />` : ''}
+                  </div>
+                  <p>Authorized Signatory</p>
+                </div>
+              </div>
+            </div>
+          </body>
+        </html>
+      `);
+      
+      printWindow.document.close();
+      printWindow.focus();
+      
+      setTimeout(() => {
+        printWindow.print();
+        printWindow.close();
+      }, 250);
+    }
+  };
+
   if (!bill) return null;
+
+  const calculateItemTotal = (item: BillItemData) => {
+    return item.quantity * item.price;
+  };
 
   return (
     <Dialog open={isOpen} onOpenChange={(open) => !open && onClose()}>
@@ -104,7 +381,7 @@ const BillDetailDialog: React.FC<BillDetailDialogProps> = ({ bill, isOpen, onClo
                           <p className="text-sm text-gray-500">Qty: {item.quantity}</p>
                         </div>
                       </div>
-                      <p className="font-medium">{formatCurrency(item.price * item.quantity)}</p>
+                      <p className="font-medium">{formatCurrency(calculateItemTotal(item))}</p>
                     </div>
                   ))}
                 </div>
@@ -119,6 +396,18 @@ const BillDetailDialog: React.FC<BillDetailDialogProps> = ({ bill, isOpen, onClo
             )}
           </div>
         </div>
+
+        {/* Hidden printable content for reference */}
+        <div ref={printableContentRef} className="hidden"></div>
+
+        <DialogFooter className="mt-6">
+          <Button 
+            onClick={handlePrint}
+            className="bg-green-600 hover:bg-green-700 text-white flex items-center gap-2"
+          >
+            <Printer className="h-4 w-4" /> Reprint Invoice
+          </Button>
+        </DialogFooter>
       </DialogContent>
     </Dialog>
   );
