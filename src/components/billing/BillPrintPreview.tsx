@@ -1,22 +1,14 @@
+
 import React, { useRef, useEffect, useState } from "react";
 import { BillItem } from "@/types/billing";
 import BillActions from "./BillActions";
-import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
-import { Separator } from "@/components/ui/separator";
 import { format } from "date-fns";
 import { useCompanyProfile } from "@/hooks/useCompanyProfile";
 import { CompanyProfile } from "@/types/company";
-import { useNavigate } from "react-router-dom";
-import { Button } from "@/components/ui/button";
-import { Settings } from "lucide-react";
-import BillPrintHeader from "./print/BillPrintHeader";
-import BillPrintTitle from "./print/BillPrintTitle";
-import BillPrintCustomerInfo from "./print/BillPrintCustomerInfo";
-import BillPrintItemsTable from "./print/BillPrintItemsTable";
-import BillPrintAmountSection from "./print/BillPrintAmountSection";
-import BillPrintTerms from "./print/BillPrintTerms";
-import BillPrintBankDetails from "./print/BillPrintBankDetails";
-import BillPrintFooter from "./print/BillPrintFooter";
+import BillCompanySettingsButton from "./print/BillCompanySettingsButton";
+import BillPrintContainer from "./print/BillPrintContainer";
+import { handlePrint } from "./print/BillPrintService";
+import { numberToWords } from "@/utils/numberToWords";
 
 interface BillPrintPreviewProps {
   billNumber: string;
@@ -28,6 +20,7 @@ interface BillPrintPreviewProps {
   onPaymentStatus: (status: 'paid' | 'cancelled') => void;
   onBackToEdit: () => void;
   isLoading: boolean;
+  reprinted?: boolean;
 }
 
 const defaultCompanyProfile: CompanyProfile = {
@@ -55,10 +48,10 @@ const BillPrintPreview: React.FC<BillPrintPreviewProps> = ({
   calculateTotal,
   onPaymentStatus,
   onBackToEdit,
-  isLoading
+  isLoading,
+  reprinted = false
 }) => {
   const printRef = useRef<HTMLDivElement>(null);
-  const navigate = useNavigate();
   const { profile, loading } = useCompanyProfile();
   const [companyData, setCompanyData] = useState<CompanyProfile>(defaultCompanyProfile);
   const validItems = items.filter(item => item.product_name && item.quantity > 0);
@@ -70,238 +63,36 @@ const BillPrintPreview: React.FC<BillPrintPreviewProps> = ({
     }
   }, [profile]);
   
-  const numberToWords = (num: number) => {
-    const units = ["", "One", "Two", "Three", "Four", "Five", "Six", "Seven", "Eight", "Nine", "Ten"];
-    const teens = ["", "Eleven", "Twelve", "Thirteen", "Fourteen", "Fifteen", "Sixteen", "Seventeen", "Eighteen", "Nineteen"];
-    const tens = ["", "", "Twenty", "Thirty", "Forty", "Fifty", "Sixty", "Seventy", "Eighty", "Ninety"];
-    
-    if (num === 0) return "Zero";
-    
-    const convertLessThanThousand = (n: number) => {
-      if (n === 0) return "";
-      else if (n < 10) return units[n];
-      else if (n < 20) return teens[n - 10];
-      else if (n < 100) return tens[Math.floor(n / 10)] + (n % 10 !== 0 ? " " + units[n % 10] : "");
-      else return units[Math.floor(n / 100)] + " Hundred" + (n % 100 !== 0 ? " " + convertLessThanThousand(n % 100) : "");
-    };
-    
-    let result = "";
-    if (num < 1000) {
-      result = convertLessThanThousand(num);
-    } else if (num < 100000) {
-      result = convertLessThanThousand(Math.floor(num / 1000)) + " Thousand";
-      if (num % 1000 !== 0) result += " " + convertLessThanThousand(num % 1000);
-    }
-    
-    return result;
-  };
-  
   const totalInWords = `${numberToWords(Math.floor(calculateTotal()))} Rupees only`;
   
-  const handlePrint = () => {
-    const printContent = document.createElement('div');
-    printContent.innerHTML = printRef.current?.innerHTML || '';
-    
-    const windowFeatures = 'left=0,top=0,width=800,height=600';
-    const printWindow = window.open('', '_blank', windowFeatures);
-    
-    if (printWindow) {
-      printWindow.document.write(`
-        <html>
-          <head>
-            <title>Print Invoice #${billNumber}</title>
-            <style>
-              @page {
-                size: A4;
-                margin: 10mm;
-              }
-              body {
-                font-family: Arial, sans-serif;
-                padding: 10px;
-                margin: 0;
-                font-size: 12px;
-              }
-              .invoice-container {
-                max-width: 100%;
-                margin: 0 auto;
-                border: 1px solid #000;
-                padding: 10px;
-              }
-              .header {
-                display: flex;
-                justify-content: space-between;
-                align-items: center;
-                margin-bottom: 5px;
-              }
-              .logo {
-                width: 60px;
-                height: 60px;
-              }
-              .company-details {
-                text-align: right;
-                font-size: 10px;
-              }
-              .invoice-title {
-                text-align: center;
-                font-weight: bold;
-                margin: 5px 0;
-                font-size: 14px;
-              }
-              h2 {
-                margin-bottom: 5px;
-                font-size: 14px;
-              }
-              h3 {
-                margin-bottom: 3px;
-                font-size: 12px;
-              }
-              table {
-                width: 100%;
-                border-collapse: collapse;
-                margin: 10px 0;
-                font-size: 10px;
-              }
-              th, td {
-                padding: 3px 5px;
-                text-align: left;
-                border: 1px solid #ddd;
-                font-size: 10px;
-              }
-              th {
-                background-color: #4A7ADB;
-                color: white;
-              }
-              .text-right {
-                text-align: right;
-              }
-              .text-center {
-                text-align: center;
-              }
-              .section-header {
-                background-color: #4A7ADB;
-                color: white;
-                padding: 3px 5px;
-                margin: 5px 0;
-                font-weight: bold;
-              }
-              .bill-sections {
-                display: flex;
-                justify-content: space-between;
-              }
-              .bill-to {
-                width: 48%;
-              }
-              .invoice-details {
-                width: 48%;
-                text-align: right;
-              }
-              .separator {
-                border-top: 1px solid #000;
-                margin: 10px 0;
-              }
-              .footer {
-                display: flex;
-                justify-content: space-between;
-                margin-top: 15px;
-              }
-              .bank-details, .signature {
-                width: 48%;
-              }
-              .terms {
-                margin: 10px 0;
-              }
-              .amount-section {
-                display: flex;
-                justify-content: space-between;
-              }
-              .amount-words {
-                width: 60%;
-              }
-              .amount-table {
-                width: 38%;
-              }
-              .amount-table table {
-                border-collapse: collapse;
-                width: 100%;
-              }
-              .amount-table td {
-                padding: 3px;
-                border: 1px solid #ddd;
-              }
-              .signature-image {
-                max-width: 100px;
-                max-height: 40px;
-              }
-              p {
-                margin: 2px 0;
-              }
-            </style>
-          </head>
-          <body>
-            ${printContent.innerHTML}
-          </body>
-        </html>
-      `);
-      
-      printWindow.document.close();
-      printWindow.focus();
-      
-      setTimeout(() => {
-        printWindow.print();
-        printWindow.close();
-      }, 250);
-    }
+  const printHandler = () => {
+    handlePrint({
+      printRef,
+      billNumber
+    });
   };
   
   return (
     <div className="print-preview bg-white p-6 rounded-lg border border-gray-200 shadow-lg">
-      <div className="flex justify-end mb-4">
-        <Button
-          variant="outline"
-          size="sm"
-          className="flex items-center gap-1 text-xs"
-          onClick={() => navigate('/company-profile')}
-        >
-          <Settings className="h-3 w-3" />
-          Edit Company Details
-        </Button>
-      </div>
+      <BillCompanySettingsButton />
       
-      <div ref={printRef} className="invoice-container">
-        <BillPrintHeader companyData={companyData} />
-        
-        <Separator className="my-2 border-black" />
-        
-        <BillPrintTitle />
-        
-        <BillPrintCustomerInfo 
-          email={email} 
-          state={companyData.state} 
-          billNumber={billNumber} 
-          currentDate={currentDate} 
-        />
-        
-        <BillPrintItemsTable 
-          items={validItems} 
-          calculateSubtotal={calculateSubtotal} 
-        />
-        
-        <BillPrintAmountSection
-          totalInWords={totalInWords}
+      <div ref={printRef} className="relative">
+        <BillPrintContainer
+          companyData={companyData}
+          email={email}
+          billNumber={billNumber}
+          currentDate={currentDate}
+          validItems={validItems}
           calculateSubtotal={calculateSubtotal}
           calculateTotal={calculateTotal}
+          totalInWords={totalInWords}
+          reprinted={reprinted}
         />
-        
-        <BillPrintTerms />
-        
-        <BillPrintBankDetails companyData={companyData} />
-        
-        <BillPrintFooter companyData={companyData} />
       </div>
       
       <BillActions
         onPaymentStatus={onPaymentStatus}
-        onPrint={handlePrint}
+        onPrint={printHandler}
         onBackToEdit={onBackToEdit}
         isLoading={isLoading}
       />

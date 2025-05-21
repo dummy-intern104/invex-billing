@@ -1,7 +1,11 @@
 
 import React from "react";
 
-const BillPrintTitle: React.FC = () => {
+interface BillPrintTitleProps {
+  reprinted?: boolean;
+}
+
+const BillPrintTitle: React.FC<BillPrintTitleProps> = ({ reprinted = false }) => {
   return (
     <div className="invoice-title">
       <h2 className="text-center text-xl font-bold">Tax Invoice</h2>
