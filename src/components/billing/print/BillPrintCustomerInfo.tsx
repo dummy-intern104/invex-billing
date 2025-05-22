@@ -1,34 +1,32 @@
 
 import React from "react";
+import { PaymentMode } from "@/hooks/useBillForm";
 
 interface BillPrintCustomerInfoProps {
   email: string;
   state: string;
   billNumber: string;
   currentDate: string;
+  paymentMode: PaymentMode;
 }
 
 const BillPrintCustomerInfo: React.FC<BillPrintCustomerInfoProps> = ({
   email,
   state,
   billNumber,
-  currentDate
+  currentDate,
+  paymentMode
 }) => {
   return (
-    <div className="bill-sections flex justify-between">
-      <div className="bill-to w-1/2">
-        <h3 className="font-bold text-sm mb-1">Bill To</h3>
-        <p className="text-xs mb-0 font-semibold">{email?.split('@')[0] || 'Customer'}</p>
-        <p className="text-xs mb-0">{email}</p>
-        <p className="text-xs mb-0">Contact No.: N/A</p>
-        <p className="text-xs mb-0">GSTIN: N/A</p>
-        <p className="text-xs mb-0">State: {state?.split('-')[1] || 'Tamil Nadu'}</p>
+    <div className="grid grid-cols-2 gap-4 mt-4 text-sm">
+      <div>
+        <p><strong>Customer Email:</strong> {email}</p>
+        <p><strong>State/Province:</strong> {state}</p>
+        <p><strong>Payment Mode:</strong> {paymentMode}</p>
       </div>
-      <div className="invoice-details w-1/2 text-right">
-        <h3 className="font-bold text-sm mb-1">Invoice Details</h3>
-        <p className="text-xs mb-0">Invoice No.: {billNumber}</p>
-        <p className="text-xs mb-0">Date: {currentDate}</p>
-        <p className="text-xs mb-0">Place of supply: {state || '33-Tamil Nadu'}</p>
+      <div className="text-right">
+        <p><strong>Invoice Number:</strong> {billNumber}</p>
+        <p><strong>Date:</strong> {currentDate}</p>
       </div>
     </div>
   );

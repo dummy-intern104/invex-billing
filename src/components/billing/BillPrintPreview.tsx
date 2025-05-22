@@ -8,6 +8,7 @@ import { CompanyProfile } from "@/types/company";
 import BillPrintContainer from "./print/BillPrintContainer";
 import { handlePrint } from "./print/BillPrintService";
 import { numberToWords } from "@/utils/numberToWords";
+import { PaymentMode } from "@/hooks/useBillForm";
 
 interface BillPrintPreviewProps {
   billNumber: string;
@@ -19,6 +20,7 @@ interface BillPrintPreviewProps {
   onPaymentStatus: (status: 'paid' | 'cancelled') => void;
   onBackToEdit: () => void;
   isLoading: boolean;
+  paymentMode: PaymentMode;
   reprinted?: boolean;
 }
 
@@ -48,6 +50,7 @@ const BillPrintPreview: React.FC<BillPrintPreviewProps> = ({
   onPaymentStatus,
   onBackToEdit,
   isLoading,
+  paymentMode,
   reprinted = false
 }) => {
   const printRef = useRef<HTMLDivElement>(null);
@@ -84,6 +87,7 @@ const BillPrintPreview: React.FC<BillPrintPreviewProps> = ({
           calculateTotal={calculateTotal}
           totalInWords={totalInWords}
           reprinted={reprinted}
+          paymentMode={paymentMode}
         />
       </div>
       

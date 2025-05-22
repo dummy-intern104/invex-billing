@@ -3,6 +3,7 @@ import React from "react";
 import { Separator } from "@/components/ui/separator";
 import { CompanyProfile } from "@/types/company";
 import { BillItem } from "@/types/billing";
+import { PaymentMode } from "@/hooks/useBillForm";
 
 import BillPrintHeader from "./BillPrintHeader";
 import BillPrintTitle from "./BillPrintTitle";
@@ -22,6 +23,7 @@ interface BillPrintContainerProps {
   calculateSubtotal: () => number;
   calculateTotal: () => number;
   totalInWords: string;
+  paymentMode: PaymentMode;
   reprinted?: boolean;
 }
 
@@ -34,6 +36,7 @@ const BillPrintContainer: React.FC<BillPrintContainerProps> = ({
   calculateSubtotal,
   calculateTotal,
   totalInWords,
+  paymentMode,
   reprinted = false
 }) => {
   return (
@@ -55,6 +58,7 @@ const BillPrintContainer: React.FC<BillPrintContainerProps> = ({
         state={companyData.state} 
         billNumber={billNumber} 
         currentDate={currentDate} 
+        paymentMode={paymentMode}
       />
       
       <BillPrintItemsTable 
