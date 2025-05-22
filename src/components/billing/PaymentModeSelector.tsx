@@ -2,7 +2,7 @@
 import React from "react";
 import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
 import { Label } from "@/components/ui/label";
-import { Cash, CreditCard, Wallet } from "lucide-react";
+import { DollarSign, CreditCard, Wallet } from "lucide-react";
 import { PaymentMode } from "@/hooks/useBillForm";
 
 interface PaymentModeSelectorProps {
@@ -28,7 +28,7 @@ const PaymentModeSelector: React.FC<PaymentModeSelectorProps> = ({
             htmlFor="cash"
             className="flex flex-col items-center justify-between rounded-md border-2 border-muted bg-popover p-4 hover:bg-accent hover:text-accent-foreground peer-data-[state=checked]:border-primary [&:has([data-state=checked])]:border-primary"
           >
-            <Cash className="h-6 w-6 mb-2" />
+            <DollarSign className="h-6 w-6 mb-2" />
             Cash
           </Label>
         </div>
