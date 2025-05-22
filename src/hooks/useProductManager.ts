@@ -17,6 +17,18 @@ export const useProductManager = () => {
   const addProduct = async (productData: ProductFormData) => {
     setIsLoading(true);
     try {
+      // Check if user is authenticated
+      const { data: session } = await supabase.auth.getSession();
+      
+      if (!session || !session.session) {
+        toast({
+          title: "Authentication error",
+          description: "You must be logged in to add products",
+          variant: "destructive"
+        });
+        return { success: false, error: "Not authenticated" };
+      }
+
       const { data, error } = await supabase
         .from('products')
         .insert([{
@@ -29,6 +41,7 @@ export const useProductManager = () => {
         .select();
 
       if (error) {
+        console.error("Supabase error:", error);
         toast({
           title: "Error adding product",
           description: error.message,
