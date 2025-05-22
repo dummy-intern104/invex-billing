@@ -17,6 +17,8 @@ export type Bill = {
   created_by: string;
   created_at: string;
   updated_at: string;
+  payment_mode: string;
+  payment_date: string | null;
 };
 
 export type Product = {
@@ -26,6 +28,7 @@ export type Product = {
   price: number;
   stock: number;
   created_at: string;
+  hsn_code?: string;
 };
 
 export type CompanyProfile = {

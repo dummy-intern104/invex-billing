@@ -54,6 +54,7 @@ const BillForm: React.FC<BillFormProps> = ({ onSubmit, onBillCreated, initialBil
           onPaymentStatus={handlePaymentStatus}
           onBackToEdit={() => setShowPrintPreview(false)}
           isLoading={isLoading}
+          paymentMode={paymentMode}
         />
       ) : (
         <BillFormInput

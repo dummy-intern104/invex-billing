@@ -54,6 +54,8 @@ export type Database = {
           created_by: string
           customer_email: string
           id: string
+          payment_date: string | null
+          payment_mode: string | null
           total: number
           updated_at: string | null
         }
@@ -63,6 +65,8 @@ export type Database = {
           created_by: string
           customer_email: string
           id?: string
+          payment_date?: string | null
+          payment_mode?: string | null
           total: number
           updated_at?: string | null
         }
@@ -72,6 +76,8 @@ export type Database = {
           created_by?: string
           customer_email?: string
           id?: string
+          payment_date?: string | null
+          payment_mode?: string | null
           total?: number
           updated_at?: string | null
         }
@@ -137,6 +143,7 @@ export type Database = {
       products: {
         Row: {
           created_at: string | null
+          hsn_code: string | null
           id: string
           name: string
           price: number
@@ -145,6 +152,7 @@ export type Database = {
         }
         Insert: {
           created_at?: string | null
+          hsn_code?: string | null
           id?: string
           name: string
           price: number
@@ -153,6 +161,7 @@ export type Database = {
         }
         Update: {
           created_at?: string | null
+          hsn_code?: string | null
           id?: string
           name?: string
           price?: number

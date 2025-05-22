@@ -19,7 +19,13 @@ export const useProductManager = () => {
     try {
       const { data, error } = await supabase
         .from('products')
-        .insert([productData])
+        .insert([{
+          name: productData.name,
+          price: productData.price,
+          stock: productData.stock || 0,
+          product_id: `PROD-${Math.floor(100000 + Math.random() * 900000)}`,
+          hsn_code: productData.hsn_code || null
+        }])
         .select();
 
       if (error) {
