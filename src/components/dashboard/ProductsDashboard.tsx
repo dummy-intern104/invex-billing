@@ -14,7 +14,7 @@ interface ProductsDashboardProps {
 
 const ProductsDashboard: React.FC<ProductsDashboardProps> = ({ userEmail }) => {
   const { productData, topProducts, isLoading, refetch } = useProductData(userEmail);
-  const [activeTab, setActiveTab] = useState("management");
+  const [activeTab, setActiveTab] = useState("products");
 
   const handleProductAdded = () => {
     refetch();
@@ -29,9 +29,13 @@ const ProductsDashboard: React.FC<ProductsDashboardProps> = ({ userEmail }) => {
       
       <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
         <TabsList className="mb-6 bg-white/20 dark:bg-black/20 backdrop-blur-sm">
-          <TabsTrigger value="management">Sales Analytics</TabsTrigger>
           <TabsTrigger value="products">Product Inventory</TabsTrigger>
+          <TabsTrigger value="management">Sales Analytics</TabsTrigger>
         </TabsList>
+        
+        <TabsContent value="products" className="space-y-6">
+          <ProductsListing />
+        </TabsContent>
         
         <TabsContent value="management" className="space-y-6">
           <Card className="bg-white/90 dark:bg-gray-800/50 backdrop-blur-sm">
@@ -51,10 +55,6 @@ const ProductsDashboard: React.FC<ProductsDashboardProps> = ({ userEmail }) => {
               <ProductsTable productData={productData} isLoading={isLoading} />
             </CardContent>
           </Card>
-        </TabsContent>
-        
-        <TabsContent value="products" className="space-y-6">
-          <ProductsListing />
         </TabsContent>
       </Tabs>
     </div>
